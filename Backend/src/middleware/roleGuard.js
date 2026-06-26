@@ -4,7 +4,7 @@ export const ProjectRole = (...roles) => (req, res, next) => {
         return res.status(401).json({ message: "Project not found" })
     }
 
-    const member = project.member.find(m => m.user.toString() === req.user._id.toString())
+    const member = project.members.find(m => m.user.toString() === req.user._id.toString())
     if (!member || !roles.includes(member.role)) {
         return res.status(403).json({ message: 'Forbidden' })
     }

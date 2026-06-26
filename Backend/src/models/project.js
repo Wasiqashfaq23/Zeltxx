@@ -1,6 +1,6 @@
-import mongoose, { Schema } from "mongoose";
+import mongoose from "mongoose";
 
-const { schema } = mongoose;
+const { Schema } = mongoose;
 
 const projectSchema = new Schema({
     name: {
@@ -10,12 +10,7 @@ const projectSchema = new Schema({
     description: {
         type: String
     },
-    owner: {
-        type: Schema.Types.ObjectId,
-        ref: 'User',
-        required: true
-    },
-    collaboratorss: [{
+    members: [{
         user: { type: Schema.Types.ObjectId, ref: 'User' },
         role: { type: String, enum: ['admin', 'collaborator'], default: 'collaborator' }
     }],
@@ -23,6 +18,6 @@ const projectSchema = new Schema({
         type: Boolean,
         default: true
     }
-}, { timestamp: true })
+}, { timestamps: true })
 
 export default mongoose.model('Project', projectSchema)

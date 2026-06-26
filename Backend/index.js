@@ -7,6 +7,8 @@ import './src/config/passport.js'
 import passport from 'passport'
 import { errorHandler } from './src/middleware/errorHandler.js'
 import authRoutes from './src/routes/auth.js'
+import projectRoutes from './src/routes/project.js'
+
 
 
 const app=express();
@@ -22,6 +24,8 @@ app.use(cookieParser())
 app.use(passport.initialize())
 
 app.use('/api/auth', authRoutes)
+app.use('/api/projects', projectRoutes)
+
 
 app.use(errorHandler)
 
