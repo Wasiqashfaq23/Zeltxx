@@ -39,7 +39,6 @@ const contributionSchema = new Schema({
 
 contributionSchema.pre('save', function (next) {
     this.weight = WEIGHTS[this.type]
-    next()
 })
 
 export { WEIGHTS }
