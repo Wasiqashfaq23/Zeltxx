@@ -6,12 +6,13 @@ import cookieParser from 'cookie-parser'
 import {connectToMongo} from "./src/config/db.js"
 import './src/config/passport.js'
 import passport from 'passport'
+import { startDailySnapshot } from './src/jobs/dailySnapshot.js'
 import { errorHandler } from './src/middleware/errorHandler.js'
 import { initSocket } from './src/socket/index.js'
 import authRoutes from './src/routes/auth.js'
 import projectRoutes from './src/routes/project.js'
 import contributionRoutes from "./src/routes/contribution.js"
-
+import snapshotRoutes from "./src/routes/snapshot.js";
 
 
 const app=express();
@@ -35,10 +36,12 @@ app.use((req, res, next) => { req.io = io; next() })
 app.use('/api/auth', authRoutes)
 app.use('/api/projects', projectRoutes)
 app.use('/api/contributions', contributionRoutes)
-
+app.use('/api/snapshots',     snapshotRoutes)
 
 
 app.use(errorHandler)
+
+startDailySnapshot()
 
 
 httpServer.listen(PORT || 5000, () =>

@@ -1,6 +1,6 @@
 import mongoose from 'mongoose'
 import Contribution from "../models/contribution.js";
-import ProjectModel from "../models/project.js";
+import Project from "../models/project.js";
 
 const WEIGHTS = {
     commit: 4,
@@ -20,7 +20,7 @@ export const logContribution = async (req, res) => {
             return res.status(400).json({ message: "Invalid projectId. Please provide a valid MongoDB ObjectId." })
         }
 
-        const project = await ProjectModel.findById(projectId)
+        const project = await Project.findById(projectId)
         if (!project) {
             return res.status(404).json({ message: "Project not found" })
         }
@@ -55,7 +55,7 @@ export const getContribution = async (req, res) => {
             return res.status(400).json({ message: "Invalid projectId. Please provide a valid MongoDB ObjectId." })
         }
 
-        const project = await ProjectModel.findById(projectId)
+        const project = await Project.findById(projectId)
         if(!project){
             return res.status(404).json({message:"Project not found"})  
         }
@@ -80,7 +80,7 @@ export const getProjectSummary = async (req, res) => {
             return res.status(400).json({ message: "Invalid projectId. Please provide a valid MongoDB ObjectId." })
         }
 
-        const project=await ProjectModel.findById(projectId)
+        const project=await Project.findById(projectId)
         if(!project){
             return res.status(404).json({message:"Project not found"})  
         }
