@@ -1,8 +1,8 @@
 const StatCard = ({ label, value }) => {
   return (
     <div>
-      <p>{label}</p>
-      <p>{value}</p>
+      <div>{label}</div>
+      <div>{value}</div>
     </div>
   )
 }

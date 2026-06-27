@@ -5,9 +5,9 @@ const Navbar = () => {
 
   return (
     <nav>
-      <span>Zeltxx</span>
+      <span>Zeliq</span>
       <span>{user?.name}</span>
-      <button onClick={logout}>Logout</button>
+      <button type="button" onClick={logout}>Logout</button>
     </nav>
   )
 }

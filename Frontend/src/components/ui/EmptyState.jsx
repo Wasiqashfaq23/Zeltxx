@@ -1,4 +1,4 @@
-const EmptyState = ({ message = 'Nothing here yet' }) => {
+const EmptyState = ({ message }) => {
   return <div>{message}</div>
 }
 
