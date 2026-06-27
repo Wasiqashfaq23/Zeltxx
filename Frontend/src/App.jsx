@@ -15,19 +15,14 @@ const App = () => {
     <Routes>
       <Route path="/login" element={<Login />} />
 
-      {/* admin routes */}
-      <Route element={<ProtectedRoute role="admin" />}>
+      <Route element={<ProtectedRoute />}>
+        <Route path="/dashboard" element={<CollabDashboard />} />
+        <Route path="/projects/:id" element={<MyProject />} />
+        <Route path="/stats" element={<MyStats />} />
         <Route path="/admin" element={<AdminDashboard />} />
         <Route path="/admin/projects" element={<ProjectList />} />
         <Route path="/admin/projects/:id" element={<ProjectDetail />} />
         <Route path="/admin/users" element={<UserManagement />} />
-      </Route>
-
-      {/* collaborator routes */}
-      <Route element={<ProtectedRoute role="collaborator" />}>
-        <Route path="/dashboard" element={<CollabDashboard />} />
-        <Route path="/projects/:id" element={<MyProject />} />
-        <Route path="/stats" element={<MyStats />} />
       </Route>
 
       <Route path="/" element={<Navigate to="/login" replace />} />

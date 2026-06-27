@@ -1,4 +1,4 @@
-import api from '/axiosInstance'
+import api from './axiosInstance'
 
 export const getProjects =()=> api.get('/api/projects')
 export const getProjectById= (id)=>api.get(`/api/projects/${id}`)
