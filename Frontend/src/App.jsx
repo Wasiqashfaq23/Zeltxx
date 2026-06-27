@@ -1,28 +1,27 @@
 import { Routes, Route, Navigate } from 'react-router-dom'
 import ProtectedRoute from './components/layout/ProtectedRoute'
 import Login from './pages/auth/Login'
-import AdminDashboard from './pages/admin/AdminDashboard'
-import ProjectList from './pages/admin/ProjectList'
-import ProjectDetail from './pages/admin/ProjectDetail'
-import UserManagement from './pages/admin/UserManagement'
-import CollabDashboard from './pages/collaborator/CollabDashboard'
-import MyProject from './pages/collaborator/MyProject'
-import MyStats from './pages/collaborator/MyStats'
-import NotFound from './pages/shared/NotFound'
+import Dashboard from './pages/Dashboard'
+import ProjectPage from './pages/ProjectPage'
+import AdminProjectList from './pages/admin/AdminProjectList'
+import AdminProjectDetail from './pages/admin/AdminProjectDetail'
+import MyStats from './pages/MyStats'
+import Unauthorized from './pages/Unauthorized'
+import NotFound from './pages/NotFound'
 
 const App = () => {
   return (
     <Routes>
       <Route path="/login" element={<Login />} />
+      <Route path="/unauthorized" element={<Unauthorized />} />
 
       <Route element={<ProtectedRoute />}>
-        <Route path="/dashboard" element={<CollabDashboard />} />
-        <Route path="/projects/:id" element={<MyProject />} />
+        <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/projects/:id" element={<ProjectPage />} />
+        <Route path="/projects/:id/contribute" element={<ProjectPage />} />
+        <Route path="/admin/projects" element={<AdminProjectList />} />
+        <Route path="/admin/projects/:id" element={<AdminProjectDetail />} />
         <Route path="/stats" element={<MyStats />} />
-        <Route path="/admin" element={<AdminDashboard />} />
-        <Route path="/admin/projects" element={<ProjectList />} />
-        <Route path="/admin/projects/:id" element={<ProjectDetail />} />
-        <Route path="/admin/users" element={<UserManagement />} />
       </Route>
 
       <Route path="/" element={<Navigate to="/login" replace />} />
