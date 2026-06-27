@@ -1,2 +1,10 @@
-const Page = () => <div>Page coming soon</div>
-export default Page
+const StatCard = ({ label, value }) => {
+  return (
+    <div>
+      <p>{label}</p>
+      <p>{value}</p>
+    </div>
+  )
+}
+
+export default StatCard

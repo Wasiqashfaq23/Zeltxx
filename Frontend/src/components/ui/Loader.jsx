@@ -1,2 +1,5 @@
-const Page = () => <div>Page coming soon</div>
-export default Page
+const Loader = () => {
+  return <div>Loading...</div>
+}
+
+export default Loader
