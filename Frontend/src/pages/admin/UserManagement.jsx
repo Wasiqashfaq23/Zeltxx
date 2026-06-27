@@ -13,8 +13,8 @@ const UserManagement = () => {
     useEffect(() => {
         getProjects()
             .then(res => set)
-            .catch()
-            .finally()
+            .catch(err=>console.error(err))
+            .finally(()=>setLoading(false))
     }, [])
 
     const allMembers = project.flatMap(p => p.members.map(m => ({ ...m, projectName: p.name })))
