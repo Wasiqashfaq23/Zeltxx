@@ -1,7 +1,7 @@
 import express from 'express'
 import passport from 'passport'
 import { protect } from '../middleware/auth.js'
-import { googleCallback, logout, getMe } from '../controllers/user.js'
+import { googleCallback, logout, getMe } from '../controllers/auth.js'
 
 const router = express.Router()
 
