@@ -8,12 +8,17 @@ import {
   removeMember
 } from '../../api/projects'
 import { getProjectSummary } from '../../api/contributions'
+import { getSnapshotsByRange } from '../../api/snapshots'
 import { useAuth } from '../../context/AuthContext'
 import Navbar from '../../components/layout/Navbar'
 import Sidebar from '../../components/layout/Sidebar'
 import Loader from '../../components/ui/Loader'
 import EmptyState from '../../components/ui/EmptyState'
 import UserAvatar from '../../components/ui/UserAvatar'
+import ContributionBarChart from '../../components/charts/ContributionBarChart'
+import ActivityLineChart from '../../components/charts/ActivityLineChart'
+import ContribTypeDonut from '../../components/charts/ContribTypeDonut'
+import { daysAgo } from '../../utils/chartHelpers'
 
 const AdminProjectDetail = () => {
   const { id } = useParams()
@@ -21,6 +26,7 @@ const AdminProjectDetail = () => {
   const { user } = useAuth()
   const [project, setProject] = useState(null)
   const [summary, setSummary] = useState([])
+  const [snapshots, setSnapshots] = useState([])
   const [loading, setLoading] = useState(true)
   const [name, setName] = useState('')
   const [description, setDescription] = useState('')
@@ -28,10 +34,15 @@ const AdminProjectDetail = () => {
   const [inviteRole, setInviteRole] = useState('collaborator')
 
   useEffect(() => {
-    Promise.all([getProjectById(id), getProjectSummary(id)])
-      .then(([projectRes, summaryRes]) => {
+    Promise.all([
+      getProjectById(id),
+      getProjectSummary(id),
+      getSnapshotsByRange(id, daysAgo(14), new Date().toISOString().split('T')[0])
+    ])
+      .then(([projectRes, summaryRes, snapshotsRes]) => {
         setProject(projectRes.data)
         setSummary(summaryRes.data)
+        setSnapshots(snapshotsRes.data)
       })
       .catch((err) => console.error(err))
       .finally(() => setLoading(false))
@@ -85,6 +96,7 @@ const AdminProjectDetail = () => {
 
   const totalContributions = summary.reduce((sum, entry) => sum + entry.totalCount, 0)
   const rankedSummary = [...summary].sort((a, b) => b.totalWeight - a.totalWeight)
+  const combinedBreakdown = summary.reduce((acc, entry) => acc.concat(entry.breakdown || []), [])
 
   return (
     <div>
@@ -189,6 +201,10 @@ const AdminProjectDetail = () => {
             })}
           </div>
         )}
+
+        <ContributionBarChart summary={summary} />
+        <ActivityLineChart snapshots={snapshots} members={project?.members || []} />
+        <ContribTypeDonut breakdown={combinedBreakdown} />
 
         <button type="button" onClick={handleDelete}>
           Delete Project
