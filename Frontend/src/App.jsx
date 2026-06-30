@@ -5,6 +5,7 @@ import Dashboard from './pages/Dashboard'
 import ProjectPage from './pages/ProjectPage'
 import AdminProjectList from './pages/admin/AdminProjectList'
 import AdminProjectDetail from './pages/admin/AdminProjectDetail'
+import UserManagement from './pages/admin/UserManagement'
 import MyStats from './pages/MyStats'
 import Unauthorized from './pages/Unauthorized'
 import NotFound from './pages/NotFound'
@@ -21,6 +22,7 @@ const App = () => {
         <Route path="/projects/:id/contribute" element={<ProjectPage />} />
         <Route path="/admin/projects" element={<AdminProjectList />} />
         <Route path="/admin/projects/:id" element={<AdminProjectDetail />} />
+        <Route path="/admin/users" element={<UserManagement />} />
         <Route path="/stats" element={<MyStats />} />
       </Route>
 

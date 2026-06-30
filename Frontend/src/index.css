@@ -1,1 +1,37 @@
 @import "tailwindcss";
+
+@source "../src/**/*.{js,jsx}";
+
+@import "tw-animate-css";
+
+:root {
+  --background: #ffffff;
+  --foreground: #1a1a2e;
+  --card: #ffffff;
+  --card-foreground: #1a1a2e;
+  --popover: #ffffff;
+  --popover-foreground: #1a1a2e;
+  --primary: #4f46e5;
+  --primary-foreground: #ffffff;
+  --secondary: #f4f4f7;
+  --secondary-foreground: #1a1a2e;
+  --muted: #f4f4f7;
+  --muted-foreground: #6b7280;
+  --accent: #ede9fe;
+  --accent-foreground: #4f46e5;
+  --destructive: #dc2626;
+  --border: #e8e8ef;
+  --input: #e8e8ef;
+  --ring: #4f46e5;
+  --radius: 0.625rem;
+}
+
+body {
+  font-family: 'Inter', sans-serif;
+  background-color: #f4f4f7;
+  color: #1a1a2e;
+}
+
+input, select, textarea, button {
+  font-family: inherit;
+}
