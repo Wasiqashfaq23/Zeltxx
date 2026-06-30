@@ -112,7 +112,7 @@ const AdminProjectDetail = () => {
   }
 
   const handleInvite = async () => {
-    setInviteFeedback('')
+    setPageMessage('')
     setInviteError('')
     try {
       const res = await inviteMember(id, { email: inviteEmail, role: inviteRole })
@@ -279,6 +279,7 @@ const AdminProjectDetail = () => {
                   size="icon"
                   onClick={() => handleRemove(member.user._id)}
                   className="hover:text-[#dc2626]"
+                  aria-label={`Remove ${member.user.name} from project`}
                 >
                   <UserMinus className="h-4 w-4" />
                 </Button>

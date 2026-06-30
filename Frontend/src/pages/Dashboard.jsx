@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { Plus, FolderKanban } from 'lucide-react'
 import { getProjects, createProject } from '../api/projects'
 import { useAuth } from '../context/AuthContext'
@@ -24,6 +24,7 @@ import { Label } from '@/components/ui/label'
 
 const Dashboard = () => {
   const { user } = useAuth()
+  const navigate = useNavigate()
   const [projects, setProjects] = useState([])
   const [loading, setLoading] = useState(true)
   const [dialogOpen, setDialogOpen] = useState(false)
@@ -96,44 +97,52 @@ const Dashboard = () => {
             return (
               <Card
                 key={project._id}
-                className="flex cursor-pointer flex-col border-[#e8e8ef] bg-white p-5 shadow-sm transition-all hover:border-[#4f46e5] hover:shadow-md"
+                className="flex flex-col border-[#e8e8ef] bg-white p-5 shadow-sm transition-all hover:border-[#4f46e5] hover:shadow-md"
               >
-                <CardContent className="flex flex-1 flex-col p-0">
-                  <div className="flex items-start justify-between">
-                    <h3 className="text-base font-semibold text-[#1a1a2e]">{project.name}</h3>
-                    <Badge
-                      variant="secondary"
-                      className={
-                        role === 'admin'
-                          ? 'bg-[#ede9fe] text-[#4f46e5]'
-                          : 'bg-[#f4f4f7] text-[#6b7280]'
-                      }
-                    >
-                      {role}
-                    </Badge>
-                  </div>
-                  <p className="mt-1 line-clamp-2 flex-1 text-sm text-[#6b7280]">
-                    {project.description || 'No description'}
-                  </p>
-                  <div className="mt-4 flex items-center justify-between border-t border-[#e8e8ef] pt-3">
-                    <div className="flex items-center">
+                <Link to={`/projects/${project._id}`} className="flex flex-1 flex-col">
+                  <CardContent className="flex flex-1 flex-col p-0">
+                    <div className="flex items-start justify-between">
+                      <h3 className="text-base font-semibold text-[#1a1a2e]">{project.name}</h3>
+                      <Badge
+                        variant="secondary"
+                        className={
+                          role === 'admin'
+                            ? 'bg-[#ede9fe] text-[#4f46e5]'
+                            : 'bg-[#f4f4f7] text-[#6b7280]'
+                        }
+                      >
+                        {role}
+                      </Badge>
+                    </div>
+                    <p className="mt-1 line-clamp-2 flex-1 text-sm text-[#6b7280]">
+                      {project.description || 'No description'}
+                    </p>
+                    <div className="mt-4 flex items-center border-t border-[#e8e8ef] pt-3">
                       <MemberAvatarStack members={project.members} />
                       <span className="ml-2 text-xs text-[#9ca3af]">
                         {project.members.length} members
                       </span>
                     </div>
-                    <div className="flex gap-2">
-                      <Link to={`/projects/${project._id}`}>
-                        <Button variant="ghost" size="sm">View</Button>
-                      </Link>
-                      {role === 'admin' && (
-                        <Link to={`/admin/projects/${project._id}`}>
-                          <Button variant="ghost" size="sm">Manage</Button>
-                        </Link>
-                      )}
-                    </div>
-                  </div>
-                </CardContent>
+                  </CardContent>
+                </Link>
+                <div className="mt-3 flex gap-2 px-5 pb-5">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => navigate(`/projects/${project._id}`)}
+                  >
+                    View
+                  </Button>
+                  {role === 'admin' && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => navigate(`/admin/projects/${project._id}`)}
+                    >
+                      Manage
+                    </Button>
+                  )}
+                </div>
               </Card>
             )
           })}

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Link, useParams } from 'react-router-dom'
+import { useParams, useNavigate } from 'react-router-dom'
 import { Plus, Activity } from 'lucide-react'
 import { getProjectById } from '../api/projects'
 import { getContributions, logContribution } from '../api/contributions'
@@ -44,6 +44,7 @@ const enrichContribution = (contribution, project, currentUser) => {
 
 const ProjectPage = () => {
   const { id } = useParams()
+  const navigate = useNavigate()
   const { user } = useAuth()
   const socket = useSocket()
   const [project, setProject] = useState(null)
@@ -121,6 +122,7 @@ const ProjectPage = () => {
                 <EmptyState
                   message="No contributions yet"
                   icon={<Activity className="h-6 w-6" />}
+                  action={{ label: 'Log Contribution', onClick: () => setDialogOpen(true) }}
                 />
               ) : (
                 <div className="max-h-[600px] overflow-y-auto">
@@ -183,11 +185,13 @@ const ProjectPage = () => {
                 ))}
               </ul>
               {role === 'admin' && (
-                <Link to={`/admin/projects/${id}`}>
-                  <Button variant="ghost" className="mt-4 w-full">
-                    Manage Project
-                  </Button>
-                </Link>
+                <Button
+                  variant="ghost"
+                  className="mt-4 w-full"
+                  onClick={() => navigate(`/admin/projects/${id}`)}
+                >
+                  Manage Project
+                </Button>
               )}
             </CardContent>
           </Card>

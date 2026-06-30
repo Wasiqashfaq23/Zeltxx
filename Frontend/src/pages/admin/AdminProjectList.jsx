@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import { Plus, FolderKanban } from 'lucide-react'
 import { getProjects, createProject } from '../../api/projects'
 import { useAuth } from '../../context/AuthContext'
@@ -22,6 +22,7 @@ import { Label } from '@/components/ui/label'
 
 const AdminProjectList = () => {
   const { user } = useAuth()
+  const navigate = useNavigate()
   const [projects, setProjects] = useState([])
   const [loading, setLoading] = useState(true)
   const [dialogOpen, setDialogOpen] = useState(false)
@@ -90,9 +91,12 @@ const AdminProjectList = () => {
                     {project.members.length} members
                   </span>
                 </div>
-                <Link to={`/admin/projects/${project._id}`} className="mt-4">
-                  <Button className="w-full bg-[#4f46e5] hover:bg-[#4338ca]">Manage</Button>
-                </Link>
+                <Button
+                  className="mt-4 w-full bg-[#4f46e5] hover:bg-[#4338ca]"
+                  onClick={() => navigate(`/admin/projects/${project._id}`)}
+                >
+                  Manage
+                </Button>
               </CardContent>
             </Card>
           ))}

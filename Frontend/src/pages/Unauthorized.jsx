@@ -1,9 +1,11 @@
-import { Link } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import { Lock } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 
 const Unauthorized = () => {
+  const navigate = useNavigate()
+
   return (
     <div className="flex min-h-screen items-center justify-center bg-[#f4f4f7] px-6">
       <Card className="w-full max-w-sm border-[#e8e8ef] bg-white text-center shadow-sm">
@@ -13,11 +15,12 @@ const Unauthorized = () => {
           <p className="mt-1 text-sm text-[#6b7280]">
             You don&apos;t have permission to view this page.
           </p>
-          <Link to="/dashboard">
-            <Button className="mt-6 bg-[#4f46e5] hover:bg-[#4338ca]">
-              Go to Dashboard
-            </Button>
-          </Link>
+          <Button
+            className="mt-6 bg-[#4f46e5] hover:bg-[#4338ca]"
+            onClick={() => navigate('/dashboard')}
+          >
+            Go to Dashboard
+          </Button>
         </CardContent>
       </Card>
     </div>
