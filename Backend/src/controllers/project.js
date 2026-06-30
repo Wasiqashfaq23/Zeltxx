@@ -1,4 +1,7 @@
 import ProjectModel from "../models/project.js"
+import Invite from "../models/invite.js"
+import Notification from "../models/notification.js"
+import User from "../models/user.js"
 
 export const createProject = async (req, res) => {
     try {
@@ -54,18 +57,46 @@ export const deleteProject = async (req, res) => {
 }
 
 export const inviteMember = async (req, res) => {
-    const { userId, role } = req.body
-    const projectDoc = await ProjectModel.findById(req.params.id)
+    try {
+        const { email, role } = req.body
+        const projectDoc = await ProjectModel.findById(req.params.id)
 
-    const alreadyMember = projectDoc.members.some(m => m.user.toString() === userId)
-    if (alreadyMember) {
-        return res.status(400).json({ message: "User is already a member" })
+        if (!projectDoc) return res.status(404).json({ message: 'Project not found' })
+
+        const existingUser = await User.findOne({ email: email.toLowerCase() })
+
+        if (existingUser) {
+            const alreadyMember = projectDoc.members.some(m => m.user.toString() === existingUser._id.toString())
+            if (alreadyMember) return res.status(400).json({ message: 'User is already a member' })
+
+            projectDoc.members.push({ user: existingUser._id, role: role || 'collaborator' })
+            await projectDoc.save()
+
+            await Notification.create({
+                user: existingUser._id,
+                type: 'project_invite',
+                message: `You were added to ${projectDoc.name}`,
+                project: projectDoc._id
+            })
+
+            const populated = await ProjectModel.findById(projectDoc._id).populate('members.user', 'name email avatar')
+            return res.json(populated)
+        }
+
+        const existingInvite = await Invite.findOne({ project: projectDoc._id, email: email.toLowerCase() })
+        if (existingInvite) return res.status(400).json({ message: 'Invite already sent to this email' })
+
+        await Invite.create({
+            project: projectDoc._id,
+            email: email.toLowerCase(),
+            role: role || 'collaborator',
+            invitedBy: req.user._id
+        })
+
+        res.status(201).json({ message: `Invite created for ${email}. They will be added once they sign in.` })
+    } catch (err) {
+        res.status(500).json({ message: err.message })
     }
-
-    projectDoc.members.push({ user: userId, role })
-    await projectDoc.save()
-
-    res.status(200).json(projectDoc)
 }
 
 export const removeMember = async (req, res) => {

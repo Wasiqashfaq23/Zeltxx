@@ -58,8 +58,10 @@ const AdminProjectDetail = () => {
   const [loading, setLoading] = useState(true)
   const [name, setName] = useState('')
   const [description, setDescription] = useState('')
-  const [inviteUserId, setInviteUserId] = useState('')
+  const [inviteEmail, setInviteEmail] = useState('')
   const [inviteRole, setInviteRole] = useState('collaborator')
+  const [inviteError, setInviteError] = useState('')
+  const [pageMessage, setPageMessage] = useState('')
   const [editOpen, setEditOpen] = useState(false)
   const [deleteOpen, setDeleteOpen] = useState(false)
   const [inviteOpen, setInviteOpen] = useState(false)
@@ -109,15 +111,22 @@ const AdminProjectDetail = () => {
       .catch((err) => console.error(err))
   }
 
-  const handleInvite = (e) => {
-    e.preventDefault()
-    inviteMember(id, { userId: inviteUserId, role: inviteRole })
-      .then(() => {
-        setInviteUserId('')
-        setInviteOpen(false)
-        return refreshProject()
-      })
-      .catch((err) => console.error(err))
+  const handleInvite = async () => {
+    setInviteFeedback('')
+    setInviteError('')
+    try {
+      const res = await inviteMember(id, { email: inviteEmail, role: inviteRole })
+      if (res.data.members) {
+        setProject(res.data)
+      } else {
+        setPageMessage(res.data.message)
+      }
+      setInviteEmail('')
+      setInviteRole('collaborator')
+      setInviteOpen(false)
+    } catch (err) {
+      setInviteError(err.response?.data?.message || 'Failed to send invite')
+    }
   }
 
   const handleDelete = () => {
@@ -135,6 +144,18 @@ const AdminProjectDetail = () => {
 
   return (
     <Layout>
+      {pageMessage && (
+        <div className="mb-4 rounded-lg border border-[#e8e8ef] bg-[#ede9fe] px-4 py-3 text-sm text-[#4f46e5]">
+          {pageMessage}
+          <button
+            type="button"
+            onClick={() => setPageMessage('')}
+            className="ml-3 text-[#4338ca] underline"
+          >
+            Dismiss
+          </button>
+        </div>
+      )}
       <Card className="mb-6 border-[#e8e8ef] bg-white shadow-sm">
         <CardContent className="flex items-start justify-between p-5">
           <div>
@@ -326,41 +347,53 @@ const AdminProjectDetail = () => {
         </DialogContent>
       </Dialog>
 
-      <Dialog open={inviteOpen} onOpenChange={setInviteOpen}>
+      <Dialog open={inviteOpen} onOpenChange={(open) => {
+        setInviteOpen(open)
+        if (!open) {
+          setInviteError('')
+        }
+      }}>
         <DialogContent className="border-[#e8e8ef] bg-white">
           <DialogHeader>
             <DialogTitle>Invite Member</DialogTitle>
+            <DialogDescription>
+              Invite someone by email. If they don't have a Zeliq account yet, they'll be added automatically when they sign in.
+            </DialogDescription>
           </DialogHeader>
-          <form onSubmit={handleInvite} className="space-y-4">
+          {inviteError && (
+            <p className="text-sm text-[#dc2626]">{inviteError}</p>
+          )}
+          <div className="space-y-4">
             <div>
-              <Label htmlFor="invite-id">User ID</Label>
+              <Label htmlFor="invite-email">Email</Label>
               <Input
-                id="invite-id"
-                value={inviteUserId}
-                onChange={(e) => setInviteUserId(e.target.value)}
-                required
+                id="invite-email"
+                type="email"
+                placeholder="teammate@example.com"
+                value={inviteEmail}
+                onChange={(e) => setInviteEmail(e.target.value)}
                 className="mt-1 border-[#e8e8ef]"
               />
             </div>
             <div>
-              <Label>Role</Label>
+              <Label htmlFor="invite-role">Role</Label>
               <Select value={inviteRole} onValueChange={setInviteRole}>
-                <SelectTrigger className="mt-1 w-full border-[#e8e8ef]">
+                <SelectTrigger id="invite-role" className="mt-1 w-full border-[#e8e8ef]">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="collaborator">collaborator</SelectItem>
-                  <SelectItem value="admin">admin</SelectItem>
+                  <SelectItem value="collaborator">Collaborator</SelectItem>
+                  <SelectItem value="admin">Admin</SelectItem>
                 </SelectContent>
               </Select>
             </div>
-            <DialogFooter>
-              <Button type="button" variant="outline" onClick={() => setInviteOpen(false)}>
-                Cancel
-              </Button>
-              <Button type="submit" className="bg-[#4f46e5] hover:bg-[#4338ca]">Invite</Button>
-            </DialogFooter>
-          </form>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setInviteOpen(false)}>Cancel</Button>
+            <Button onClick={handleInvite} disabled={!inviteEmail} className="bg-[#4f46e5] hover:bg-[#4338ca]">
+              Send Invite
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </Layout>

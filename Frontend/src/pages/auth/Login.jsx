@@ -6,6 +6,7 @@ import { Separator } from '@/components/ui/separator'
 
 const Login = () => {
   const { user, loading } = useAuth()
+  const googleAuthUrl = `${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/auth/google`
 
   if (loading) return <Loader />
   if (user) return <Navigate to="/dashboard" replace />
@@ -27,7 +28,7 @@ const Login = () => {
           <Separator className="my-6 bg-[#e8e8ef]" />
 
           <a
-            href="http://localhost:5000/api/auth/google"
+            href={googleAuthUrl}
             className="flex w-full items-center justify-center gap-3 rounded-lg border border-[#e8e8ef] bg-white px-4 py-3 text-sm font-medium text-[#1a1a2e] transition-colors hover:bg-[#f4f4f7]"
           >
             <svg width="16" height="16" viewBox="0 0 18 18" aria-hidden="true">
