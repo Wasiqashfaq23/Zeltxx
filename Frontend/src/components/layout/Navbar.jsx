@@ -9,8 +9,7 @@ import {
   DropdownMenuContent,
   DropdownMenuTrigger,
   DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuLabel
+  DropdownMenuSeparator
 } from '@/components/ui/dropdown-menu'
 import { Button } from '@/components/ui/button'
 import { getNotifications, markAsRead, markAllAsRead } from '../../api/notifications'
@@ -123,7 +122,9 @@ const Navbar = () => {
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-80">
             <div className="flex items-center justify-between px-2 py-1.5">
-              <DropdownMenuLabel className="p-0">Notifications</DropdownMenuLabel>
+              <span className="px-1.5 py-1 text-xs font-medium text-[#6b7280]">
+                Notifications
+              </span>
               {unreadCount > 0 && (
                 <Button
                   variant="ghost"
@@ -201,10 +202,10 @@ const Navbar = () => {
             </button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-48">
-            <DropdownMenuLabel className="font-normal">
+            <div className="font-normal">
               <p className="text-sm font-medium text-[#1a1a2e]">{user?.name}</p>
               <p className="text-xs text-[#9ca3af]">{user?.email}</p>
-            </DropdownMenuLabel>
+            </div>
             <DropdownMenuSeparator />
             <DropdownMenuItem
               onClick={logout}
