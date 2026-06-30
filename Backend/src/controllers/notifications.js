@@ -7,7 +7,12 @@ export const getNotifications = async (req, res) => {
       .sort({ createdAt: -1 })
       .limit(20)
 
-    res.json(notifications)
+    const safeNotifications = notifications.map((notification) => ({
+      ...notification.toObject(),
+      message: typeof notification.message === 'string' ? notification.message : ''
+    }))
+
+    res.json(safeNotifications)
   } catch (err) {
     res.status(500).json({ message: err.message })
   }

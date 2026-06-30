@@ -162,9 +162,16 @@ const Navbar = () => {
                         />
                       )}
                       <div className={!n.read ? '' : 'pl-4'}>
-                        <p className="text-sm text-[#1a1a2e]">{n.message}</p>
+                        <p className="text-sm text-[#1a1a2e]">
+                          {typeof n.message === 'string' ? n.message : ''}
+                        </p>
                         <p className="text-xs text-[#9ca3af]">
-                          {new Date(n.createdAt).toLocaleString()}
+                          {(() => {
+                            const date = new Date(n.createdAt)
+                            return Number.isNaN(date.getTime())
+                              ? ''
+                              : date.toLocaleString()
+                          })()}
                         </p>
                       </div>
                     </div>
