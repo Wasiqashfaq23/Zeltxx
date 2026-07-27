@@ -16,8 +16,7 @@ This application brings project management, contribution tracking, role-based ac
 - Node.js
 - Socket.IO
 - JWT and cookies
-- Passport for Google authentication
-- Vite and Tailwind
+- Passport for Google authentication
 
 ## Routes
 ### Auth
