@@ -138,19 +138,6 @@ const Navbar = () => {
       </div>
 
       <div className="flex items-center gap-2 sm:gap-3">
-        <button
-          type="button"
-          onClick={toggleTheme}
-          aria-label="Toggle theme"
-          title={`Switch to ${theme === 'light' ? 'dark' : 'light'} mode`}
-          className="rounded-lg p-2 text-slate-300 transition-colors hover:bg-slate-800 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
-        >
-          {theme === 'light' ? (
-            <Moon className="h-5 w-5 text-slate-300" aria-hidden="true" />
-          ) : (
-            <Sun className="h-5 w-5 text-amber-400" aria-hidden="true" />
-          )}
-        </button>
         <DropdownMenu open={notifOpen} onOpenChange={handleNotifOpenChange}>
           <DropdownMenuTrigger asChild>
             <button
