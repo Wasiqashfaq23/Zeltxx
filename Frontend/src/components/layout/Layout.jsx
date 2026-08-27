@@ -49,11 +49,11 @@ const Layout = ({ children }) => {
         closeMobileSidebar
       }}
     >
-      <div className="min-h-screen bg-[#f4f4f7]">
+      <div className="min-h-screen bg-[#f4f4f7] dark:bg-slate-950 text-slate-900 dark:text-slate-100 transition-colors">
         <Navbar />
         <Sidebar />
         <main
-          className={`mt-14 min-h-[calc(100vh-3.5rem)] bg-[#f4f4f7] p-4 sm:p-6 transition-all duration-200 ml-0 ${marginClass}`}
+          className={`mt-14 min-h-[calc(100vh-3.5rem)] bg-[#f4f4f7] dark:bg-slate-950 p-4 sm:p-6 transition-all duration-200 ml-0 ${marginClass}`}
         >
           {children}
         </main>

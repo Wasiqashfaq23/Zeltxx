@@ -111,14 +111,14 @@ const Navbar = () => {
   }
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 flex h-14 items-center justify-between border-b border-[#e8e8ef] bg-white px-3 sm:px-6 dark:bg-slate-900 dark:border-slate-800">
+    <header className="fixed top-0 left-0 right-0 z-50 flex h-14 items-center justify-between border-b border-slate-800 bg-[#0f172a] px-3 sm:px-6 text-white shadow-xs">
       <div className="flex items-center gap-2 sm:gap-3">
         <button
           type="button"
           onClick={handleToggle}
           aria-label={sidebarExpanded ? 'Collapse sidebar' : 'Expand sidebar'}
           aria-expanded={mobileOpen || sidebarExpanded}
-          className="flex h-8 w-8 items-center justify-center rounded-lg text-[#6b7280] transition-colors hover:bg-[#f4f4f7] dark:hover:bg-slate-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#4f46e5]"
+          className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-300 transition-colors hover:bg-slate-800 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
         >
           {sidebarExpanded ? (
             <PanelLeftClose className="h-5 w-5" aria-hidden="true" />
@@ -128,12 +128,12 @@ const Navbar = () => {
         </button>
         <div className="flex items-center">
           <div
-            className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#4f46e5] text-sm font-bold text-white shadow-xs"
+            className="flex h-7 w-7 items-center justify-center rounded-lg bg-blue-600 text-sm font-bold text-white shadow-xs"
             aria-hidden="true"
           >
             Z
           </div>
-          <span className="ml-2 text-base sm:text-lg font-semibold text-[#1a1a2e] dark:text-slate-100">zeltxx</span>
+          <span className="ml-2 text-base sm:text-lg font-bold text-white tracking-tight">zeltxx</span>
         </div>
       </div>
 
@@ -143,10 +143,10 @@ const Navbar = () => {
           onClick={toggleTheme}
           aria-label="Toggle theme"
           title={`Switch to ${theme === 'light' ? 'dark' : 'light'} mode`}
-          className="rounded-lg p-2 text-[#6b7280] transition-colors hover:bg-[#f4f4f7] dark:hover:bg-slate-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#4f46e5]"
+          className="rounded-lg p-2 text-slate-300 transition-colors hover:bg-slate-800 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
         >
           {theme === 'light' ? (
-            <Moon className="h-5 w-5 text-[#6b7280]" aria-hidden="true" />
+            <Moon className="h-5 w-5 text-slate-300" aria-hidden="true" />
           ) : (
             <Sun className="h-5 w-5 text-amber-400" aria-hidden="true" />
           )}
@@ -160,12 +160,12 @@ const Navbar = () => {
                   ? `Notifications, ${unreadCount} unread`
                   : 'Notifications'
               }
-              className="relative rounded-lg p-2 transition-colors hover:bg-[#f4f4f7] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#4f46e5]"
+              className="relative rounded-lg p-2 text-slate-300 transition-colors hover:bg-slate-800 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
             >
-              <Bell className="h-5 w-5 text-[#6b7280]" aria-hidden="true" />
+              <Bell className="h-5 w-5 text-slate-300" aria-hidden="true" />
               {unreadCount > 0 && (
                 <span
-                  className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-semibold text-white"
+                  className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-600 px-1 text-[10px] font-semibold text-white"
                   aria-hidden="true"
                 >
                   {unreadCount > 9 ? '9+' : unreadCount}
@@ -183,7 +183,7 @@ const Navbar = () => {
                   variant="ghost"
                   size="xs"
                   onClick={handleMarkAllRead}
-                  className="h-auto px-2 py-1 text-xs text-[#4f46e5] hover:text-[#4338ca]"
+                  className="h-auto px-2 py-1 text-xs text-blue-600 hover:text-blue-700"
                 >
                   Mark all read
                 </Button>
@@ -204,19 +204,19 @@ const Navbar = () => {
                   <DropdownMenuItem
                     key={n._id}
                     className={`flex cursor-pointer flex-col items-start gap-0.5 py-2 ${
-                      !n.read ? 'bg-[#f8f7ff]' : ''
+                      !n.read ? 'bg-blue-50/50 dark:bg-blue-950/40' : ''
                     }`}
                     onClick={() => handleNotificationClick(n)}
                   >
                     <div className="flex w-full items-start gap-2">
                       {!n.read && (
                         <span
-                          className="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-[#4f46e5]"
+                          className="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-blue-600"
                           aria-hidden="true"
                         />
                       )}
                       <div className={!n.read ? '' : 'pl-4'}>
-                        <p className="text-sm text-[#1a1a2e]">
+                        <p className="text-sm text-[#1a1a2e] dark:text-slate-100">
                           {typeof n.message === 'string' ? n.message : ''}
                         </p>
                         <p className="text-xs text-[#9ca3af]">
@@ -241,15 +241,15 @@ const Navbar = () => {
             <button
               type="button"
               aria-label="Account menu"
-              className="flex items-center gap-2 rounded-lg p-1 transition-colors hover:bg-[#f4f4f7] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#4f46e5]"
+              className="flex items-center gap-2 rounded-lg p-1 transition-colors hover:bg-slate-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
             >
               <Avatar className="h-8 w-8">
                 <AvatarImage src={user?.avatar} alt="" />
-                <AvatarFallback className="bg-[#ede9fe] text-sm text-[#4f46e5]">
+                <AvatarFallback className="bg-blue-600 text-xs font-bold text-white">
                   {user?.name?.charAt(0).toUpperCase() || '?'}
                 </AvatarFallback>
               </Avatar>
-              <span className="hidden text-sm font-medium text-[#6b7280] sm:inline">
+              <span className="hidden text-sm font-medium text-slate-200 sm:inline">
                 {user?.name}
               </span>
             </button>

@@ -55,26 +55,26 @@ const UserManagement = () => {
     <Layout>
       <div className="mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div className="flex items-center gap-3">
-          <h1 className="text-2xl font-bold text-[#1a1a2e]">Users</h1>
-          <Badge variant="secondary" className="bg-[#ede9fe] text-[#4f46e5]">
+          <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">Users</h1>
+          <Badge variant="secondary" className="bg-blue-50 text-blue-700 dark:bg-blue-950/80 dark:text-blue-300">
             {uniqueMembers.length} Total
           </Badge>
         </div>
         <div className="relative w-full sm:w-72">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#9ca3af]" />
+          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
           <Input
             type="text"
             placeholder="Search users..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-9 bg-white border-[#e8e8ef]"
+            className="pl-9"
           />
         </div>
       </div>
 
-      <Card className="border-[#e8e8ef] bg-white shadow-sm">
-        <CardHeader className="border-b border-[#e8e8ef] px-5 py-4">
-          <CardTitle className="text-base font-semibold">All Workspace Users</CardTitle>
+      <Card className="border-slate-200 bg-white shadow-xs dark:border-slate-800 dark:bg-slate-900">
+        <CardHeader className="border-b border-slate-200 px-5 py-4 dark:border-slate-800">
+          <CardTitle className="text-base font-semibold text-slate-900 dark:text-slate-100">All Workspace Users</CardTitle>
         </CardHeader>
         <CardContent className="p-0">
           {filteredMembers.length === 0 ? (
@@ -89,36 +89,36 @@ const UserManagement = () => {
             <div className="overflow-x-auto">
               <Table>
                 <TableHeader>
-                  <TableRow className="border-[#e8e8ef] hover:bg-transparent">
-                    <TableHead className="text-[#6b7280]">User</TableHead>
-                    <TableHead className="text-[#6b7280]">Email</TableHead>
-                    <TableHead className="text-[#6b7280]">Role</TableHead>
-                    <TableHead className="text-[#6b7280]">Actions</TableHead>
+                  <TableRow className="border-slate-200 hover:bg-transparent dark:border-slate-800">
+                    <TableHead className="text-slate-500 dark:text-slate-400">User</TableHead>
+                    <TableHead className="text-slate-500 dark:text-slate-400">Email</TableHead>
+                    <TableHead className="text-slate-500 dark:text-slate-400">Role</TableHead>
+                    <TableHead className="text-slate-500 dark:text-slate-400">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {filteredMembers.map((m) => (
-                    <TableRow key={m.key || m.user._id} className="border-[#f0f0f5]">
+                    <TableRow key={m.key || m.user._id} className="border-slate-100 dark:border-slate-800/60">
                       <TableCell>
                         <div className="flex items-center gap-2">
                           <UserAvatar user={m.user} size="sm" />
-                          <span className="font-medium text-[#1a1a2e]">{m.user.name}</span>
+                          <span className="font-medium text-slate-900 dark:text-slate-100">{m.user.name}</span>
                         </div>
                       </TableCell>
-                      <TableCell className="text-[#6b7280]">{m.user.email}</TableCell>
+                      <TableCell className="text-slate-500 dark:text-slate-400">{m.user.email}</TableCell>
                       <TableCell>
                         <Badge
                           variant="secondary"
                           className={
                             m.role === 'admin'
-                              ? 'bg-[#ede9fe] text-[#4f46e5]'
-                              : 'bg-[#f4f4f7] text-[#6b7280]'
+                              ? 'bg-blue-50 text-blue-700 dark:bg-blue-950/80 dark:text-blue-300'
+                              : 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300'
                           }
                         >
                           {m.role}
                         </Badge>
                       </TableCell>
-                      <TableCell className="text-[#9ca3af]">—</TableCell>
+                      <TableCell className="text-slate-400 dark:text-slate-500">—</TableCell>
                     </TableRow>
                   ))}
                 </TableBody>

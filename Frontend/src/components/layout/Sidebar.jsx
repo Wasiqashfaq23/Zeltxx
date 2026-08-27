@@ -14,10 +14,10 @@ import { getProjects } from '../../api/projects'
 import { Button } from '@/components/ui/button'
 
 const navLinkClass = ({ isActive }) =>
-  `flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors mx-2 ${
+  `flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all mx-2 ${
     isActive
-      ? 'bg-blue-50 text-blue-600 dark:bg-blue-950/60 dark:text-blue-400'
-      : 'text-[#6b7280] hover:bg-[#f4f4f7] hover:text-[#1a1a2e] dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-100'
+      ? 'bg-blue-600 text-white font-semibold shadow-sm'
+      : 'text-slate-300 hover:bg-slate-800/80 hover:text-white'
   }`
 
 const Sidebar = () => {
@@ -59,20 +59,20 @@ const Sidebar = () => {
       {/* Mobile Backdrop */}
       {mobileOpen && (
         <div
-          className="fixed inset-0 z-40 bg-black/40 backdrop-blur-xs md:hidden"
+          className="fixed inset-0 z-40 bg-black/60 backdrop-blur-xs md:hidden"
           onClick={closeMobileSidebar}
           aria-hidden="true"
         />
       )}
 
-      {/* Sidebar Drawer */}
+      {/* Sidebar Drawer - Permanent Dark Theme */}
       <aside
-        className={`fixed left-0 top-14 z-40 flex h-[calc(100vh-3.5rem)] w-56 flex-col justify-between border-r border-[#e8e8ef] bg-white py-3 transition-all duration-200 ${widthClass} ${
+        className={`fixed left-0 top-14 z-40 flex h-[calc(100vh-3.5rem)] w-56 flex-col justify-between border-r border-slate-800 bg-[#0f172a] text-slate-200 py-4 transition-all duration-200 ${widthClass} ${
           mobileOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'
         }`}
         aria-label="Sidebar"
       >
-        <nav className="space-y-1" aria-label="Main navigation">
+        <nav className="space-y-1.5" aria-label="Main navigation">
           {navItems.map(({ to, label, icon: Icon }) => (
             <NavLink
               key={to}
@@ -91,7 +91,7 @@ const Sidebar = () => {
         <div className="px-2">
           <Button
             variant="ghost"
-            className={`w-full hover:text-[#dc2626] ${collapsed ? 'justify-start md:justify-center md:px-0' : 'justify-start'} text-[#6b7280]`}
+            className={`w-full text-slate-400 hover:bg-slate-800/80 hover:text-red-400 ${collapsed ? 'justify-start md:justify-center md:px-0' : 'justify-start'}`}
             onClick={() => {
               closeMobileSidebar()
               logout()

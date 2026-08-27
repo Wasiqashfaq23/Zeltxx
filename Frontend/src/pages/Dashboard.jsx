@@ -73,8 +73,8 @@ const Dashboard = () => {
   return (
     <Layout>
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-[#1a1a2e]">Dashboard</h1>
-        <p className="mt-1 text-sm text-[#6b7280]">Welcome back, {user?.name}</p>
+        <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">Dashboard</h1>
+        <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">Welcome back, {user?.name}</p>
       </div>
 
       <div className="mb-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -85,10 +85,10 @@ const Dashboard = () => {
       </div>
 
       <div className="mb-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-        <h2 className="text-lg font-semibold text-[#1a1a2e]">My Projects</h2>
+        <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">My Projects</h2>
         <Button
           onClick={() => setDialogOpen(true)}
-          className="bg-[#4f46e5] hover:bg-[#4338ca] w-full sm:w-auto"
+          className="bg-blue-600 hover:bg-blue-700 text-white w-full sm:w-auto"
         >
           <Plus className="h-4 w-4" />
           New Project
@@ -115,8 +115,8 @@ const Dashboard = () => {
               onClick={() => setRoleFilter(r)}
               className={
                 roleFilter === r
-                  ? 'bg-[#4f46e5] hover:bg-[#4338ca] text-white'
-                  : 'border-[#e8e8ef] text-[#6b7280] bg-white'
+                  ? 'bg-blue-600 hover:bg-blue-700 text-white'
+                  : 'border-slate-200 text-slate-600 bg-white dark:border-slate-800 dark:text-slate-400 dark:bg-slate-900'
               }
             >
               {r === 'all' ? 'All' : r === 'admin' ? 'As Admin' : 'As Collaborator'}
@@ -146,29 +146,29 @@ const Dashboard = () => {
             return (
               <Card
                 key={project._id}
-                className="flex flex-col border-[#e8e8ef] bg-white p-5 shadow-sm transition-all hover:border-[#4f46e5] hover:shadow-md"
+                className="flex flex-col border-slate-200 bg-white p-5 shadow-xs transition-all hover:border-blue-500 hover:shadow-md dark:border-slate-800 dark:bg-slate-900"
               >
                 <Link to={`/projects/${project._id}`} className="flex flex-1 flex-col">
                   <CardContent className="flex flex-1 flex-col p-0">
                     <div className="flex items-start justify-between">
-                      <h3 className="text-base font-semibold text-[#1a1a2e]">{project.name}</h3>
+                      <h3 className="text-base font-semibold text-slate-900 dark:text-slate-100">{project.name}</h3>
                       <Badge
                         variant="secondary"
                         className={
                           role === 'admin'
-                            ? 'bg-[#ede9fe] text-[#4f46e5]'
-                            : 'bg-[#f4f4f7] text-[#6b7280]'
+                            ? 'bg-blue-50 text-blue-700 dark:bg-blue-950/80 dark:text-blue-300'
+                            : 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300'
                         }
                       >
                         {role}
                       </Badge>
                     </div>
-                    <p className="mt-1 line-clamp-2 flex-1 text-sm text-[#6b7280]">
+                    <p className="mt-1 line-clamp-2 flex-1 text-sm text-slate-500 dark:text-slate-400">
                       {project.description || 'No description'}
                     </p>
-                    <div className="mt-4 flex items-center border-t border-[#e8e8ef] pt-3">
+                    <div className="mt-4 flex items-center border-t border-slate-100 dark:border-slate-800 pt-3">
                       <MemberAvatarStack members={project.members} />
-                      <span className="ml-2 text-xs text-[#9ca3af]">
+                      <span className="ml-2 text-xs text-slate-400 dark:text-slate-500">
                         {project.members.length} members
                       </span>
                     </div>
@@ -228,7 +228,7 @@ const Dashboard = () => {
               <Button type="button" variant="outline" onClick={() => setDialogOpen(false)}>
                 Cancel
               </Button>
-              <Button type="submit" className="bg-[#4f46e5] hover:bg-[#4338ca]">
+              <Button type="submit" className="bg-blue-600 hover:bg-blue-700 text-white">
                 Create
               </Button>
             </DialogFooter>
