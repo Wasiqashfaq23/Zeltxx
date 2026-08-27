@@ -105,15 +105,15 @@ const MyStats = () => {
         <div className="flex items-center gap-4">
           <UserAvatar user={user} size="lg" />
           <div>
-            <h1 className="text-2xl font-bold text-[#1a1a2e]">{user?.name}</h1>
-            <p className="text-sm text-[#6b7280]">Your contribution stats</p>
+            <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">{user?.name}</h1>
+            <p className="text-sm text-slate-500 dark:text-slate-400">Your contribution stats</p>
           </div>
         </div>
         {projectStats.length > 0 && (
           <Button
             variant="outline"
             onClick={handleExportCSV}
-            className="border-[#e8e8ef] text-[#1a1a2e] hover:bg-[#f4f4f7] w-full sm:w-auto"
+            className="border-slate-200 bg-white text-slate-800 hover:bg-slate-100 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800 w-full sm:w-auto font-medium"
           >
             <Download className="h-4 w-4" />
             Export CSV
@@ -132,9 +132,9 @@ const MyStats = () => {
             <StatCard label="Best Single Day" value={bestSingleDay} />
           </div>
 
-          <Card className="mb-6 border-[#e8e8ef] bg-white shadow-sm">
-            <CardHeader className="border-b border-[#e8e8ef] px-5 py-4">
-              <CardTitle className="text-base font-semibold">Your Activity Over Time</CardTitle>
+          <Card className="mb-6 border-slate-200 bg-white shadow-xs dark:border-slate-800 dark:bg-slate-900">
+            <CardHeader className="border-b border-slate-200 px-5 py-4 dark:border-slate-800">
+              <CardTitle className="text-base font-semibold text-slate-900 dark:text-slate-100">Your Activity Over Time</CardTitle>
             </CardHeader>
             <CardContent className="p-5">
               <PersonalAreaChart snapshots={allSnapshots} userId={user._id} />
@@ -142,28 +142,28 @@ const MyStats = () => {
           </Card>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <Card className="border-[#e8e8ef] bg-white shadow-sm">
-              <CardHeader className="border-b border-[#e8e8ef] px-5 py-4">
-                <CardTitle className="text-base font-semibold">By Project</CardTitle>
+            <Card className="border-slate-200 bg-white shadow-xs dark:border-slate-800 dark:bg-slate-900">
+              <CardHeader className="border-b border-slate-200 px-5 py-4 dark:border-slate-800">
+                <CardTitle className="text-base font-semibold text-slate-900 dark:text-slate-100">By Project</CardTitle>
               </CardHeader>
               <CardContent className="p-0">
                 <div className="overflow-x-auto">
                   <Table>
                     <TableHeader>
-                      <TableRow className="border-[#e8e8ef] hover:bg-transparent">
-                        <TableHead className="text-[#6b7280]">Project</TableHead>
-                        <TableHead className="text-[#6b7280]">Contributions</TableHead>
-                        <TableHead className="text-[#6b7280]">Score</TableHead>
-                        <TableHead className="text-[#6b7280]">Rank</TableHead>
+                      <TableRow className="border-slate-200 hover:bg-transparent dark:border-slate-800">
+                        <TableHead className="text-slate-500 dark:text-slate-400">Project</TableHead>
+                        <TableHead className="text-slate-500 dark:text-slate-400">Contributions</TableHead>
+                        <TableHead className="text-slate-500 dark:text-slate-400">Score</TableHead>
+                        <TableHead className="text-slate-500 dark:text-slate-400">Rank</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
                       {projectStats.map(({ project, userEntry, rank }) => (
-                        <TableRow key={project._id} className="border-[#f0f0f5]">
-                          <TableCell className="font-medium text-[#1a1a2e]">{project.name}</TableCell>
-                          <TableCell className="text-[#6b7280]">{userEntry?.totalCount || 0}</TableCell>
-                          <TableCell className="text-[#6b7280]">{userEntry?.totalWeight || 0}</TableCell>
-                          <TableCell className="text-[#6b7280]">{rank || '—'}</TableCell>
+                        <TableRow key={project._id} className="border-slate-100 dark:border-slate-800/60">
+                          <TableCell className="font-medium text-slate-900 dark:text-slate-100">{project.name}</TableCell>
+                          <TableCell className="text-slate-500 dark:text-slate-400">{userEntry?.totalCount || 0}</TableCell>
+                          <TableCell className="text-slate-500 dark:text-slate-400">{userEntry?.totalWeight || 0}</TableCell>
+                          <TableCell className="text-slate-500 dark:text-slate-400">{rank || '—'}</TableCell>
                         </TableRow>
                       ))}
                     </TableBody>
@@ -172,9 +172,9 @@ const MyStats = () => {
               </CardContent>
             </Card>
 
-            <Card className="border-[#e8e8ef] bg-white shadow-sm">
-              <CardHeader className="border-b border-[#e8e8ef] px-5 py-4">
-                <CardTitle className="text-base font-semibold">What You Contribute</CardTitle>
+            <Card className="border-slate-200 bg-white shadow-xs dark:border-slate-800 dark:bg-slate-900">
+              <CardHeader className="border-b border-slate-200 px-5 py-4 dark:border-slate-800">
+                <CardTitle className="text-base font-semibold text-slate-900 dark:text-slate-100">What You Contribute</CardTitle>
               </CardHeader>
               <CardContent className="p-5">
                 <ContribTypeDonut breakdown={allBreakdowns} />

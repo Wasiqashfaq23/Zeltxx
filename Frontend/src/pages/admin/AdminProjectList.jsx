@@ -58,10 +58,10 @@ const AdminProjectList = () => {
   return (
     <Layout>
       <div className="mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-        <h1 className="text-2xl font-bold text-[#1a1a2e]">Projects</h1>
+        <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">Projects</h1>
         <Button
           onClick={() => setDialogOpen(true)}
-          className="bg-[#4f46e5] hover:bg-[#4338ca] w-full sm:w-auto"
+          className="bg-blue-600 hover:bg-blue-700 text-white w-full sm:w-auto"
         >
           <Plus className="h-4 w-4" />
           New Project
@@ -78,21 +78,21 @@ const AdminProjectList = () => {
           {adminProjects.map((project) => (
             <Card
               key={project._id}
-              className="flex flex-col border-[#e8e8ef] bg-white p-5 shadow-sm transition-all hover:border-[#4f46e5] hover:shadow-md"
+              className="flex flex-col border-slate-200 bg-white p-5 shadow-xs transition-all hover:border-blue-500 hover:shadow-md dark:border-slate-800 dark:bg-slate-900"
             >
               <CardContent className="flex flex-1 flex-col p-0">
-                <h3 className="text-base font-semibold text-[#1a1a2e]">{project.name}</h3>
-                <p className="mt-1 line-clamp-2 flex-1 text-sm text-[#6b7280]">
+                <h3 className="text-base font-semibold text-slate-900 dark:text-slate-100">{project.name}</h3>
+                <p className="mt-1 line-clamp-2 flex-1 text-sm text-slate-500 dark:text-slate-400">
                   {project.description || 'No description'}
                 </p>
-                <div className="mt-4 flex items-center border-t border-[#e8e8ef] pt-3">
+                <div className="mt-4 flex items-center border-t border-slate-100 dark:border-slate-800 pt-3">
                   <MemberAvatarStack members={project.members} />
-                  <span className="ml-2 text-xs text-[#9ca3af]">
+                  <span className="ml-2 text-xs text-slate-400 dark:text-slate-500">
                     {project.members.length} members
                   </span>
                 </div>
                 <Button
-                  className="mt-4 w-full bg-[#4f46e5] hover:bg-[#4338ca]"
+                  className="mt-4 w-full bg-blue-600 hover:bg-blue-700 text-white"
                   onClick={() => navigate(`/admin/projects/${project._id}`)}
                 >
                   Manage
@@ -104,36 +104,36 @@ const AdminProjectList = () => {
       )}
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="border-[#e8e8ef] bg-white">
+        <DialogContent className="border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900">
           <DialogHeader>
-            <DialogTitle>Create New Project</DialogTitle>
-            <DialogDescription>Add a new project to your workspace</DialogDescription>
+            <DialogTitle className="text-slate-900 dark:text-slate-100">Create New Project</DialogTitle>
+            <DialogDescription className="text-slate-500 dark:text-slate-400">Add a new project to your workspace</DialogDescription>
           </DialogHeader>
           <form onSubmit={handleCreate} className="space-y-4">
             <div>
-              <Label htmlFor="admin-name">Name</Label>
+              <Label htmlFor="admin-name" className="text-slate-700 dark:text-slate-300">Name</Label>
               <Input
                 id="admin-name"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 required
-                className="mt-1 border-[#e8e8ef]"
+                className="mt-1"
               />
             </div>
             <div>
-              <Label htmlFor="admin-desc">Description</Label>
+              <Label htmlFor="admin-desc" className="text-slate-700 dark:text-slate-300">Description</Label>
               <Input
                 id="admin-desc"
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
-                className="mt-1 border-[#e8e8ef]"
+                className="mt-1"
               />
             </div>
             <DialogFooter>
               <Button type="button" variant="outline" onClick={() => setDialogOpen(false)}>
                 Cancel
               </Button>
-              <Button type="submit" className="bg-[#4f46e5] hover:bg-[#4338ca]">
+              <Button type="submit" className="bg-blue-600 hover:bg-blue-700 text-white">
                 Create
               </Button>
             </DialogFooter>
