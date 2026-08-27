@@ -33,7 +33,11 @@ const contributionSchema = new Schema({
     },
     meta: {
         type: Object
-    }
+    },
+    reactions: [{
+        user: { type: Schema.Types.ObjectId, ref: 'User' },
+        emoji: { type: String, required: true }
+    }]
 }, { timestamps: true })
 
 

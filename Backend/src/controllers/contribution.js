@@ -40,8 +40,10 @@ export const logContribution = async (req, res) => {
             meta
         })
 
-        req.io.to(projectId).emit('new_contribution', contribution)
-        res.status(201).json(contribution)
+        const populatedContribution = await contribution.populate('user', 'name email avatar')
+
+        req.io.to(projectId).emit('new_contribution', populatedContribution)
+        res.status(201).json(populatedContribution)
     } catch (error) {
         res.status(500).json({ message: error.message })
     }
@@ -111,4 +113,32 @@ export const getProjectSummary = async (req, res) => {
     }    catch (error) {
         res.status(400).json({ message: error.message })
     }
+}
+
+export const toggleReaction = async (req, res) => {
+  try {
+    const { id } = req.params
+    const { emoji } = req.body
+
+    const contribution = await Contribution.findById(id)
+    if (!contribution) return res.status(404).json({ message: 'Contribution not found' })
+
+    const existingIndex = contribution.reactions.findIndex(
+      (r) => r.user.toString() === req.user._id.toString() && r.emoji === emoji
+    )
+
+    if (existingIndex > -1) {
+      contribution.reactions.splice(existingIndex, 1)
+    } else {
+      contribution.reactions.push({ user: req.user._id, emoji })
+    }
+
+    await contribution.save()
+    const populated = await contribution.populate('user', 'name email avatar')
+
+    req.io?.to(contribution.project.toString()).emit('contribution_updated', populated)
+    res.json(populated)
+  } catch (err) {
+    res.status(500).json({ message: err.message })
+  }
 }

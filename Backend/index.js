@@ -14,13 +14,15 @@ import projectRoutes from './src/routes/project.js'
 import contributionRoutes from "./src/routes/contribution.js"
 import snapshotRoutes from "./src/routes/snapshot.js";
 import notificationRoutes from './src/routes/notifications.js'
-
+import taskRoutes from './src/routes/task.js'
+import chatRoutes from './src/routes/chat.js'
+import resourceRoutes from './src/routes/resource.js'
+import webhookRoutes from './src/routes/webhook.js'
 
 const app=express();
 const httpServer = http.createServer(app)
 const PORT=process.env.PORT || 5000;
 const io = initSocket(httpServer)
-
 
 connectToMongo()
 
@@ -30,15 +32,17 @@ app.use(express.json())
 app.use(cookieParser())
 app.use(passport.initialize())
 
-
 app.use((req, res, next) => { req.io = io; next() })
-
 
 app.use('/api/auth', authRoutes)
 app.use('/api/projects', projectRoutes)
 app.use('/api/contributions', contributionRoutes)
 app.use('/api/snapshots',     snapshotRoutes)
 app.use('/api/notifications', notificationRoutes)
+app.use('/api/tasks', taskRoutes)
+app.use('/api/chats', chatRoutes)
+app.use('/api/resources', resourceRoutes)
+app.use('/api/webhooks', webhookRoutes)
 
 
 app.use(errorHandler)

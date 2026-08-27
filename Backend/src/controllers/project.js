@@ -44,16 +44,50 @@ export const getProjectById = async (req, res) => {
 }
 
 export const updateProject = async (req, res) => {
-    const { name, description } = req.body
-    const projectDoc = await ProjectModel.findByIdAndUpdate(req.params.id, { name, description }, { new: true }).populate("members.user", "name email avatar")
+    try {
+        const { name, description } = req.body
+        const projectDoc = await ProjectModel.findById(req.params.id)
+        if (!projectDoc || !projectDoc.isActive) {
+            return res.status(404).json({ message: 'Project not found' })
+        }
 
-    res.status(200).json(projectDoc)
+        const isAdmin = projectDoc.members.some(
+            (m) => m.user.toString() === req.user._id.toString() && m.role === 'admin'
+        )
+        if (!isAdmin) {
+            return res.status(403).json({ message: 'Only project admins can edit project details' })
+        }
+
+        projectDoc.name = name !== undefined ? name : projectDoc.name
+        projectDoc.description = description !== undefined ? description : projectDoc.description
+        await projectDoc.save()
+
+        const populated = await ProjectModel.findById(projectDoc._id).populate('members.user', 'name email avatar')
+        res.status(200).json(populated)
+    } catch (err) {
+        res.status(500).json({ message: err.message })
+    }
 }
 
-
 export const deleteProject = async (req, res) => {
-    await ProjectModel.findByIdAndDelete(req.params.id)
-    res.status(200).json({ message: "Project deleted successfully" })
+    try {
+        const projectDoc = await ProjectModel.findById(req.params.id)
+        if (!projectDoc) {
+            return res.status(404).json({ message: 'Project not found' })
+        }
+
+        const isAdmin = projectDoc.members.some(
+            (m) => m.user.toString() === req.user._id.toString() && m.role === 'admin'
+        )
+        if (!isAdmin) {
+            return res.status(403).json({ message: 'Only project admins can delete a project' })
+        }
+
+        await ProjectModel.findByIdAndDelete(req.params.id)
+        res.status(200).json({ message: 'Project deleted successfully' })
+    } catch (err) {
+        res.status(500).json({ message: err.message })
+    }
 }
 
 export const inviteMember = async (req, res) => {
@@ -62,6 +96,13 @@ export const inviteMember = async (req, res) => {
         const projectDoc = await ProjectModel.findById(req.params.id)
 
         if (!projectDoc) return res.status(404).json({ message: 'Project not found' })
+
+        const isAdmin = projectDoc.members.some(
+            (m) => m.user.toString() === req.user._id.toString() && m.role === 'admin'
+        )
+        if (!isAdmin) {
+            return res.status(403).json({ message: 'Only project admins can invite members' })
+        }
 
         const existingUser = await User.findOne({ email: email.toLowerCase() })
 
@@ -72,12 +113,14 @@ export const inviteMember = async (req, res) => {
             projectDoc.members.push({ user: existingUser._id, role: role || 'collaborator' })
             await projectDoc.save()
 
-            await Notification.create({
+            const notif = await Notification.create({
                 user: existingUser._id,
                 type: 'project_invite',
                 message: `You were added to ${projectDoc.name}`,
                 project: projectDoc._id
             })
+
+            req.io?.to(`user_${existingUser._id.toString()}`).emit('notification', notif)
 
             const populated = await ProjectModel.findById(projectDoc._id).populate('members.user', 'name email avatar')
             return res.json(populated)
@@ -100,12 +143,52 @@ export const inviteMember = async (req, res) => {
 }
 
 export const removeMember = async (req, res) => {
-  const projectDoc = await ProjectModel.findById(req.params.id)
+    try {
+        const projectDoc = await ProjectModel.findById(req.params.id)
+        if (!projectDoc) return res.status(404).json({ message: 'Project not found' })
 
-  projectDoc.members = projectDoc.members.filter(
-    m => m.user.toString() !== req.params.userId
-  )
-  await projectDoc.save()
+        const isAdmin = projectDoc.members.some(
+            (m) => m.user.toString() === req.user._id.toString() && m.role === 'admin'
+        )
+        if (!isAdmin) {
+            return res.status(403).json({ message: 'Only project admins can remove members' })
+        }
 
-  res.json(projectDoc)
+        projectDoc.members = projectDoc.members.filter(
+            (m) => m.user.toString() !== req.params.userId
+        )
+        await projectDoc.save()
+
+        const populated = await ProjectModel.findById(projectDoc._id).populate('members.user', 'name email avatar')
+        res.json(populated)
+    } catch (err) {
+        res.status(500).json({ message: err.message })
+    }
+}
+
+export const updateProjectNotes = async (req, res) => {
+    try {
+        const { id } = req.params
+        const { notes } = req.body
+
+        const projectDoc = await ProjectModel.findById(id)
+        if (!projectDoc || !projectDoc.isActive) {
+            return res.status(404).json({ message: 'Project not found' })
+        }
+
+        const isMember = projectDoc.members.some(
+            (m) => m.user.toString() === req.user._id.toString()
+        )
+        if (!isMember) {
+            return res.status(403).json({ message: 'Not a member of this project' })
+        }
+
+        projectDoc.notes = notes !== undefined ? notes : ''
+        await projectDoc.save()
+
+        req.io?.to(id).emit('note_change', { notes: projectDoc.notes, updatedBy: req.user.name })
+        res.json({ notes: projectDoc.notes })
+    } catch (err) {
+        res.status(500).json({ message: err.message })
+    }
 }

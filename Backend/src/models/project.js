@@ -10,6 +10,10 @@ const projectSchema = new Schema({
     description: {
         type: String
     },
+    notes: {
+        type: String,
+        default: ''
+    },
     members: [{
         user: { type: Schema.Types.ObjectId, ref: 'User' },
         role: { type: String, enum: ['admin', 'collaborator'], default: 'collaborator' }
