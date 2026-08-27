@@ -199,7 +199,10 @@ const AdminProjectDetail = () => {
             <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">{project.name}</h1>
             <p className="mt-1 text-slate-500 dark:text-slate-400">{project.description || 'No description'}</p>
           </div>
-          <div className="flex gap-2">
+          <div className="flex flex-wrap items-center gap-2">
+            <Button className="bg-blue-600 hover:bg-blue-700 text-white" onClick={() => navigate(`/projects/${project._id}`)}>
+              Open Workspace (Kanban & Chat)
+            </Button>
             <Button variant="ghost" onClick={() => setEditOpen(true)} className="text-slate-700 dark:text-slate-300">Edit</Button>
             <Button variant="destructive" onClick={() => setDeleteOpen(true)}>Delete</Button>
           </div>

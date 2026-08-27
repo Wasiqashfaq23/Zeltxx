@@ -91,12 +91,21 @@ const AdminProjectList = () => {
                     {project.members.length} members
                   </span>
                 </div>
-                <Button
-                  className="mt-4 w-full bg-blue-600 hover:bg-blue-700 text-white"
-                  onClick={() => navigate(`/admin/projects/${project._id}`)}
-                >
-                  Manage
-                </Button>
+                <div className="mt-4 flex gap-2">
+                  <Button
+                    className="flex-1 bg-blue-600 hover:bg-blue-700 text-white text-xs"
+                    onClick={() => navigate(`/projects/${project._id}`)}
+                  >
+                    Open Workspace
+                  </Button>
+                  <Button
+                    variant="outline"
+                    className="text-xs border-slate-700 text-slate-300 hover:bg-slate-800"
+                    onClick={() => navigate(`/admin/projects/${project._id}`)}
+                  >
+                    Admin Settings
+                  </Button>
+                </div>
               </CardContent>
             </Card>
           ))}
