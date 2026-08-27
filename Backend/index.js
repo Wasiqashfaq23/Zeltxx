@@ -28,12 +28,19 @@ const io = initSocket(httpServer)
 connectToMongo()
 
 app.use(cors({ origin: true, credentials: true, methods: ['GET','POST','PUT','PATCH','DELETE','OPTIONS'], allowedHeaders: ['Content-Type','Authorization'] }))
-app.use(express.urlencoded({ extended: true }))
 app.use(express.json())
 app.use(cookieParser())
 app.use(passport.initialize())
-
 app.use((req, res, next) => { req.io = io; next() })
+
+app.get(['/health', '/api/health'], (req, res) => {
+  res.status(200).json({
+    status: 'ok',
+    service: 'Zeltxx SaaS API',
+    timestamp: new Date().toISOString(),
+    uptime: process.uptime()
+  })
+})
 
 app.use('/api/auth', authRoutes)
 app.use('/api/projects', projectRoutes)
