@@ -28,16 +28,16 @@ const ContribHeatmap = ({ snapshots }) => {
   }, [snapshots])
 
   const getColorClass = (count) => {
-    if (count === 0) return 'bg-[#f4f4f7] border-[#e8e8ef]'
-    if (count <= 2) return 'bg-indigo-100 border-indigo-200 text-indigo-700'
-    if (count <= 5) return 'bg-indigo-300 border-indigo-400 text-indigo-900'
-    return 'bg-[#4f46e5] border-[#4338ca] text-white'
+    if (count === 0) return 'bg-slate-800/60 border-slate-800 text-slate-400'
+    if (count <= 2) return 'bg-blue-950 border-blue-800 text-blue-300'
+    if (count <= 5) return 'bg-blue-700 border-blue-600 text-white'
+    return 'bg-blue-600 border-blue-500 text-white shadow-xs'
   }
 
   return (
-    <Card className="border-[#e8e8ef] bg-white shadow-sm">
-      <CardHeader className="border-b border-[#e8e8ef] px-5 py-3">
-        <CardTitle className="text-sm font-semibold text-[#1a1a2e]">
+    <Card className="border-slate-800 bg-slate-900 shadow-xs">
+      <CardHeader className="border-b border-slate-800 px-5 py-3">
+        <CardTitle className="text-sm font-semibold text-slate-100">
           30-Day Contribution Heatmap
         </CardTitle>
       </CardHeader>

@@ -132,9 +132,9 @@ const MyStats = () => {
             <StatCard label="Best Single Day" value={bestSingleDay} />
           </div>
 
-          <Card className="mb-6 border-slate-200 bg-white shadow-xs dark:border-slate-800 dark:bg-slate-900">
-            <CardHeader className="border-b border-slate-200 px-5 py-4 dark:border-slate-800">
-              <CardTitle className="text-base font-semibold text-slate-900 dark:text-slate-100">Your Activity Over Time</CardTitle>
+          <Card className="mb-6 border-slate-800 bg-slate-900 shadow-xs">
+            <CardHeader className="border-b border-slate-800 px-5 py-4">
+              <CardTitle className="text-base font-semibold text-slate-100">Your Activity Over Time</CardTitle>
             </CardHeader>
             <CardContent className="p-5">
               <PersonalAreaChart snapshots={allSnapshots} userId={user._id} />
@@ -142,28 +142,28 @@ const MyStats = () => {
           </Card>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <Card className="border-slate-200 bg-white shadow-xs dark:border-slate-800 dark:bg-slate-900">
-              <CardHeader className="border-b border-slate-200 px-5 py-4 dark:border-slate-800">
-                <CardTitle className="text-base font-semibold text-slate-900 dark:text-slate-100">By Project</CardTitle>
+            <Card className="border-slate-800 bg-slate-900 shadow-xs">
+              <CardHeader className="border-b border-slate-800 px-5 py-4">
+                <CardTitle className="text-base font-semibold text-slate-100">By Project</CardTitle>
               </CardHeader>
               <CardContent className="p-0">
                 <div className="overflow-x-auto">
                   <Table>
                     <TableHeader>
-                      <TableRow className="border-slate-200 hover:bg-transparent dark:border-slate-800">
-                        <TableHead className="text-slate-500 dark:text-slate-400">Project</TableHead>
-                        <TableHead className="text-slate-500 dark:text-slate-400">Contributions</TableHead>
-                        <TableHead className="text-slate-500 dark:text-slate-400">Score</TableHead>
-                        <TableHead className="text-slate-500 dark:text-slate-400">Rank</TableHead>
+                      <TableRow className="border-slate-800 hover:bg-transparent">
+                        <TableHead className="text-slate-400">Project</TableHead>
+                        <TableHead className="text-slate-400">Contributions</TableHead>
+                        <TableHead className="text-slate-400">Score</TableHead>
+                        <TableHead className="text-slate-400">Rank</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
                       {projectStats.map(({ project, userEntry, rank }) => (
-                        <TableRow key={project._id} className="border-slate-100 dark:border-slate-800/60">
-                          <TableCell className="font-medium text-slate-900 dark:text-slate-100">{project.name}</TableCell>
-                          <TableCell className="text-slate-500 dark:text-slate-400">{userEntry?.totalCount || 0}</TableCell>
-                          <TableCell className="text-slate-500 dark:text-slate-400">{userEntry?.totalWeight || 0}</TableCell>
-                          <TableCell className="text-slate-500 dark:text-slate-400">{rank || '—'}</TableCell>
+                        <TableRow key={project._id} className="border-slate-800/60">
+                          <TableCell className="font-medium text-slate-100">{project.name}</TableCell>
+                          <TableCell className="text-slate-400">{userEntry?.totalCount || 0}</TableCell>
+                          <TableCell className="text-slate-400">{userEntry?.totalWeight || 0}</TableCell>
+                          <TableCell className="text-slate-400">{rank || '—'}</TableCell>
                         </TableRow>
                       ))}
                     </TableBody>
@@ -172,9 +172,9 @@ const MyStats = () => {
               </CardContent>
             </Card>
 
-            <Card className="border-slate-200 bg-white shadow-xs dark:border-slate-800 dark:bg-slate-900">
-              <CardHeader className="border-b border-slate-200 px-5 py-4 dark:border-slate-800">
-                <CardTitle className="text-base font-semibold text-slate-900 dark:text-slate-100">What You Contribute</CardTitle>
+            <Card className="border-slate-800 bg-slate-900 shadow-xs">
+              <CardHeader className="border-b border-slate-800 px-5 py-4">
+                <CardTitle className="text-base font-semibold text-slate-100">What You Contribute</CardTitle>
               </CardHeader>
               <CardContent className="p-5">
                 <ContribTypeDonut breakdown={allBreakdowns} />

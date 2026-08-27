@@ -2,11 +2,11 @@ import { AreaChart, Area, XAxis, YAxis, Tooltip, CartesianGrid, ResponsiveContai
 import { snapshotsToAreaData } from '../../utils/chartHelpers'
 
 const tooltipStyle = {
-  backgroundColor: '#ffffff',
-  border: '1px solid #e8e8ef',
+  backgroundColor: '#0f172a',
+  border: '1px solid #334155',
   borderRadius: '8px',
-  color: '#1a1a2e',
-  boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)',
+  color: '#f8fafc',
+  boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.5)',
   fontSize: '12px'
 }
 
@@ -15,8 +15,8 @@ const PersonalAreaChart = ({ snapshots, userId }) => {
 
   if (!data.length) {
     return (
-      <div className="flex h-[300px] items-center justify-center text-sm text-[#9ca3af]">
-        No data yet
+      <div className="flex h-[300px] items-center justify-center text-sm text-slate-400">
+        No activity snapshots recorded yet
       </div>
     )
   }
@@ -24,11 +24,17 @@ const PersonalAreaChart = ({ snapshots, userId }) => {
   return (
     <ResponsiveContainer width="100%" height={300}>
       <AreaChart data={data}>
-        <CartesianGrid strokeDasharray="3 3" stroke="#e8e8ef" vertical={false} />
-        <XAxis tick={{ fill: '#6b7280', fontSize: 12 }} axisLine={false} tickLine={false} />
-        <YAxis tick={{ fill: '#6b7280', fontSize: 12 }} axisLine={false} tickLine={false} />
+        <defs>
+          <linearGradient id="colorCount" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="5%" stopColor="#2563eb" stopOpacity={0.4} />
+            <stop offset="95%" stopColor="#2563eb" stopOpacity={0} />
+          </linearGradient>
+        </defs>
+        <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" vertical={false} />
+        <XAxis dataKey="date" tick={{ fill: '#94a3b8', fontSize: 12 }} axisLine={false} tickLine={false} />
+        <YAxis tick={{ fill: '#94a3b8', fontSize: 12 }} axisLine={false} tickLine={false} />
         <Tooltip contentStyle={tooltipStyle} />
-        <Area type="monotone" dataKey="count" stroke="#4f46e5" fill="#ede9fe" strokeWidth={2} />
+        <Area type="monotone" dataKey="count" stroke="#2563eb" fill="url(#colorCount)" strokeWidth={2} />
       </AreaChart>
     </ResponsiveContainer>
   )
