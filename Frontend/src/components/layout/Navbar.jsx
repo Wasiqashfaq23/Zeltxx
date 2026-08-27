@@ -13,7 +13,7 @@ import {
   DropdownMenuSeparator
 } from '@/components/ui/dropdown-menu'
 import { Button } from '@/components/ui/button'
-import { getNotifications, markAsRead, markAllAsRead } from '../../api/notifications'
+import { getNotifications, markAsRead, markAllAsRead, respondToInvite } from '../../api/notifications'
 import ZeltxxLogo from '../ui/ZeltxxLogo'
 
 const Navbar = () => {
@@ -104,6 +104,27 @@ const Navbar = () => {
     }
   }
 
+  const handleRespondInvite = async (e, notificationId, action, projectId) => {
+    e.stopPropagation()
+    try {
+      const res = await respondToInvite(notificationId, action)
+      setNotifications((prev) =>
+        prev.map((n) =>
+          n._id === notificationId
+            ? res.data.notification || { ...n, read: true, status: action === 'accept' ? 'accepted' : 'rejected' }
+            : n
+        )
+      )
+      if (action === 'accept' && projectId) {
+        setNotifOpen(false)
+        navigate(`/projects/${projectId}`)
+      }
+    } catch (err) {
+      console.error(err)
+      alert(err.response?.data?.message || 'Failed to respond to invitation')
+    }
+  }
+
   const sidebarExpanded = sidebarState === 'expanded'
 
   const handleToggle = () => {
@@ -172,23 +193,63 @@ const Navbar = () => {
               </div>
             ) : (
               <div className="max-h-64 overflow-y-auto">
-                {notifications.map((n) => (
-                  <DropdownMenuItem
-                    key={n._id}
-                    onClick={() => handleNotificationClick(n)}
-                    className={`flex flex-col items-start gap-0.5 px-3 py-2 text-xs cursor-pointer ${
-                      !n.read ? 'bg-slate-800/80 font-medium' : ''
-                    }`}
-                  >
-                    <span className="text-slate-200">{n.message}</span>
-                    <span className="text-[10px] text-slate-400">
-                      {new Date(n.createdAt).toLocaleTimeString([], {
-                        hour: '2-digit',
-                        minute: '2-digit'
-                      })}
-                    </span>
-                  </DropdownMenuItem>
-                ))}
+                {notifications.map((n) => {
+                  const isInvite = n.type === 'project_invite'
+                  const isPending = n.status === 'pending' || !n.status
+                  const projId = n.project?._id || n.project
+
+                  return (
+                    <div
+                      key={n._id}
+                      onClick={() => handleNotificationClick(n)}
+                      className={`flex flex-col gap-1 border-b border-slate-800/60 p-3 text-xs cursor-pointer transition-colors ${
+                        !n.read ? 'bg-slate-800/80 font-medium' : 'hover:bg-slate-800/40'
+                      }`}
+                    >
+                      <div className="flex items-start justify-between gap-2">
+                        <span className="text-slate-100 leading-snug">{n.message}</span>
+                        <span className="text-[10px] text-slate-400 shrink-0">
+                          {new Date(n.createdAt).toLocaleTimeString([], {
+                            hour: '2-digit',
+                            minute: '2-digit'
+                          })}
+                        </span>
+                      </div>
+
+                      {isInvite && isPending && (
+                        <div className="flex items-center gap-2 pt-1.5" onClick={(e) => e.stopPropagation()}>
+                          <Button
+                            size="xs"
+                            className="h-6 px-3 bg-emerald-600 hover:bg-emerald-700 text-white font-medium text-[11px]"
+                            onClick={(e) => handleRespondInvite(e, n._id, 'accept', projId)}
+                          >
+                            Accept
+                          </Button>
+                          <Button
+                            size="xs"
+                            variant="ghost"
+                            className="h-6 px-2 text-slate-400 hover:text-red-400 hover:bg-red-950/40 text-[11px]"
+                            onClick={(e) => handleRespondInvite(e, n._id, 'reject', projId)}
+                          >
+                            Reject
+                          </Button>
+                        </div>
+                      )}
+
+                      {isInvite && n.status === 'accepted' && (
+                        <span className="text-[10px] text-emerald-400 font-medium flex items-center gap-1 mt-0.5">
+                          ✓ Accepted & Joined Workspace
+                        </span>
+                      )}
+
+                      {isInvite && n.status === 'rejected' && (
+                        <span className="text-[10px] text-slate-500 font-medium mt-0.5">
+                          ✕ Declined Invitation
+                        </span>
+                      )}
+                    </div>
+                  )
+                })}
               </div>
             )}
           </DropdownMenuContent>

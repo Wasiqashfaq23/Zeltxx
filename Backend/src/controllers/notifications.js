@@ -1,4 +1,5 @@
 import Notification from '../models/notification.js'
+import Project from '../models/project.js'
 
 export const getNotifications = async (req, res) => {
   try {
@@ -37,6 +38,44 @@ export const markAllAsRead = async (req, res) => {
       { read: true }
     )
     res.json({ message: 'All marked as read' })
+  } catch (err) {
+    res.status(500).json({ message: err.message })
+  }
+}
+
+export const respondToInviteNotification = async (req, res) => {
+  try {
+    const { id } = req.params
+    const { action } = req.body // 'accept' or 'reject'
+
+    const notification = await Notification.findOne({ _id: id, user: req.user._id })
+    if (!notification) return res.status(404).json({ message: 'Notification not found' })
+
+    if (action === 'accept') {
+      const projectDoc = await Project.findById(notification.project)
+      if (projectDoc) {
+        const alreadyMember = projectDoc.members.some(
+          (m) => (m.user._id || m.user).toString() === req.user._id.toString()
+        )
+        if (!alreadyMember) {
+          projectDoc.members.push({ user: req.user._id, role: 'collaborator' })
+          await projectDoc.save()
+        }
+      }
+      notification.status = 'accepted'
+      notification.read = true
+      await notification.save()
+
+      const populated = await Notification.findById(id).populate('project', 'name')
+      return res.json({ message: 'Accepted invitation successfully', notification: populated })
+    } else {
+      notification.status = 'rejected'
+      notification.read = true
+      await notification.save()
+
+      const populated = await Notification.findById(id).populate('project', 'name')
+      return res.json({ message: 'Rejected invitation', notification: populated })
+    }
   } catch (err) {
     res.status(500).json({ message: err.message })
   }

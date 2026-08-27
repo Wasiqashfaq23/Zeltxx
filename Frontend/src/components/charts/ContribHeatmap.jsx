@@ -1,7 +1,7 @@
 import { useMemo } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 
-const ContribHeatmap = ({ snapshots }) => {
+const ContribHeatmap = ({ snapshots = [], contributions = [] }) => {
   const days = useMemo(() => {
     const dates = []
     const today = new Date()
@@ -12,20 +12,31 @@ const ContribHeatmap = ({ snapshots }) => {
       dates.push({ dateStr, dayLabel: d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }), count: 0 })
     }
 
-    if (snapshots && snapshots.length) {
+    if (snapshots && snapshots.length > 0) {
       snapshots.forEach((s) => {
-        const sDate = s.date ? new Date(s.date).toISOString().split('T')[0] : null
+        const rawDate = s.date || s.createdAt
+        const sDate = rawDate ? new Date(rawDate).toISOString().split('T')[0] : null
         if (sDate) {
           const found = dates.find((d) => d.dateStr === sDate)
           if (found) {
-            found.count += s.totalCount || 0
+            found.count += s.totalCount || s.totalWeight || 1
+          }
+        }
+      })
+    } else if (contributions && contributions.length > 0) {
+      contributions.forEach((c) => {
+        const cDate = c.createdAt ? new Date(c.createdAt).toISOString().split('T')[0] : null
+        if (cDate) {
+          const found = dates.find((d) => d.dateStr === cDate)
+          if (found) {
+            found.count += 1
           }
         }
       })
     }
 
     return dates
-  }, [snapshots])
+  }, [snapshots, contributions])
 
   const getColorClass = (count) => {
     if (count === 0) return 'bg-slate-800/60 border-slate-800 text-slate-400'

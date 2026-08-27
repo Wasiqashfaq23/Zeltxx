@@ -58,59 +58,92 @@ export const getContribution = async (req, res) => {
         }
 
         const project = await Project.findById(projectId)
-        if(!project){
-            return res.status(404).json({message:"Project not found"})  
+        if (!project) {
+            return res.status(404).json({ message: "Project not found" })
         }
         
-        const isMember=project.members.some(m=>m.user.toString()===req.user._id.toString())
-        if(!isMember){
-            return res.status(403).json({message : "Not a member of this project"})
+        const isMember = project.members.some(m => m.user.toString() === req.user._id.toString())
+        if (!isMember) {
+            return res.status(403).json({ message: "Not a member of this project" })
         }  
-        const contributions=await Contribution.find({project:projectId}).populate("user","name email avatar").sort({createdAt:-1})
+        const contributions = await Contribution.find({ project: projectId }).populate("user", "name email avatar").sort({ createdAt: -1 })
         res.status(200).json(contributions)
-    }catch(err){
-        res.status(400).json({message:err.message})
+    } catch (err) {
+        res.status(400).json({ message: err.message })
     }
 }
 
-
 export const getProjectSummary = async (req, res) => {
     try {
-        const {projectId}=req.params
+        const { projectId } = req.params
 
         if (!projectId || !isValidObjectId(projectId)) {
             return res.status(400).json({ message: "Invalid projectId. Please provide a valid MongoDB ObjectId." })
         }
 
-        const project=await Project.findById(projectId)
-        if(!project){
-            return res.status(404).json({message:"Project not found"})  
+        const project = await Project.findById(projectId)
+        if (!project) {
+            return res.status(404).json({ message: "Project not found" })
         }
-        const isMember=project.members.some(m=>m.user.toString()===req.user._id.toString())
-        if(!isMember){
-            return res.status(403).json({message : "Not a member of this project"})
+        const isMember = project.members.some(m => m.user.toString() === req.user._id.toString())
+        if (!isMember) {
+            return res.status(403).json({ message: "Not a member of this project" })
         }
 
-        const summary=await Contribution.aggregate([
-            {$match : {project:new mongoose.Types.ObjectId(projectId)}},
-            {$group:{
-                _id:'$user',
-                totalCount:{$sum:1},
-                totalWeight:{$sum:'$weight'},
-                breakdown: {$push: '$type'}
-            }},
-            {$lookup:{
-                from:'users',
-                localField:'_id',
-                foreignField:'_id',
-                as: 'user'
-            }},
-            {$unwind:'$user'},
-            {$project:{'user.password':0}}
+        const rawSummary = await Contribution.aggregate([
+            { $match: { project: new mongoose.Types.ObjectId(projectId) } },
+            {
+                $group: {
+                    _id: {
+                        user: '$user',
+                        authorEmail: '$meta.authorEmail',
+                        authorName: '$meta.authorName'
+                    },
+                    totalCount: { $sum: 1 },
+                    totalWeight: { $sum: '$weight' },
+                    breakdown: { $push: '$type' }
+                }
+            },
+            {
+                $lookup: {
+                    from: 'users',
+                    localField: '_id.user',
+                    foreignField: '_id',
+                    as: 'userDoc'
+                }
+            }
         ])
 
+        const summary = rawSummary.map((item) => {
+            const registeredUser = item.userDoc && item.userDoc[0]
+            if (registeredUser) {
+                delete registeredUser.password
+                return {
+                    _id: registeredUser._id,
+                    user: registeredUser,
+                    totalCount: item.totalCount,
+                    totalWeight: item.totalWeight,
+                    breakdown: item.breakdown
+                }
+            } else {
+                return {
+                    _id: item._id.authorEmail || item._id.authorName || 'external',
+                    user: {
+                        _id: null,
+                        name: item._id.authorName || 'External Committer',
+                        email: item._id.authorEmail || '',
+                        avatar: ''
+                    },
+                    isExternal: true,
+                    totalCount: item.totalCount,
+                    totalWeight: item.totalWeight,
+                    breakdown: item.breakdown
+                }
+            }
+        })
+
         res.json(summary)
-    }    catch (error) {
+    } catch (error) {
         res.status(400).json({ message: error.message })
     }
 }

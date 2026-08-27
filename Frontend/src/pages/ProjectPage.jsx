@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { Plus, Activity, Search, Columns3, MessageSquare, FileText, FolderGit2, Calendar as CalendarIcon, GitBranch, FileDown, ArrowLeft } from 'lucide-react'
-import { getProjectById } from '../api/projects'
+import { getProjectById, inviteMember } from '../api/projects'
 import { getContributions, logContribution, toggleReaction } from '../api/contributions'
 import { useAuth } from '../context/AuthContext'
 import { useSocket } from '../context/SocketContext'
@@ -134,6 +134,17 @@ const ProjectPage = () => {
         )
       })
       .catch((err) => console.error(err))
+  }
+
+  const handleQuickInvite = (email) => {
+    if (!email) return
+    inviteMember(id, { email, role: 'collaborator' })
+      .then(() => {
+        alert(`Invitation sent to ${email}! Email notification dispatched.`)
+      })
+      .catch((err) => {
+        alert(err.response?.data?.message || 'Failed to send invite')
+      })
   }
 
   const handleExportMarkdownReport = () => {
@@ -405,14 +416,42 @@ const ProjectPage = () => {
                         key={contribution._id}
                         className="flex items-start gap-3 border-b border-[#f0f0f5] px-3 sm:px-5 py-4 hover:bg-[#f8f8fb]"
                       >
-                        <UserAvatar user={contribution.user} size="sm" />
+                        <UserAvatar
+                          user={
+                            contribution.user || {
+                              name: typeof contribution.meta === 'object' ? contribution.meta.authorName : 'External Committer',
+                              email: typeof contribution.meta === 'object' ? contribution.meta.authorEmail : ''
+                            }
+                          }
+                          size="sm"
+                        />
                         <div className="min-w-0 flex-1 space-y-1.5">
                           <div className="flex flex-wrap items-center gap-2">
-                            <span className="text-sm font-medium text-[#1a1a2e]">
-                              {contribution.user?.name}
+                            <span className="text-sm font-medium text-slate-100">
+                              {contribution.user?.name || (typeof contribution.meta === 'object' ? contribution.meta.authorName : 'External Committer')}
                             </span>
+                            {!contribution.user && (
+                              <>
+                                <span className="inline-flex items-center rounded-full bg-amber-950/80 px-2 py-0.5 text-[10px] font-medium text-amber-300 border border-amber-800">
+                                  Non-Member Committer
+                                </span>
+                                {typeof contribution.meta === 'object' && contribution.meta.authorEmail && (
+                                  <span className="text-xs text-slate-400 font-mono">({contribution.meta.authorEmail})</span>
+                                )}
+                                {role === 'admin' && typeof contribution.meta === 'object' && contribution.meta.authorEmail && (
+                                  <Button
+                                    size="xs"
+                                    variant="outline"
+                                    className="h-5 px-2 text-[10px] border-blue-700 bg-blue-950 text-blue-300 hover:bg-blue-900"
+                                    onClick={() => handleQuickInvite(contribution.meta.authorEmail)}
+                                  >
+                                    Invite to Project
+                                  </Button>
+                                )}
+                              </>
+                            )}
                             <ContribBadge type={contribution.type} />
-                            <span className="text-xs text-[#9ca3af] sm:ml-auto">
+                            <span className="text-xs text-slate-400 sm:ml-auto">
                               {new Date(contribution.createdAt).toLocaleString()}
                             </span>
                           </div>
@@ -512,7 +551,7 @@ const ProjectPage = () => {
             </CardContent>
           </Card>
 
-          <ContribHeatmap snapshots={contributions} />
+          <ContribHeatmap snapshots={contributions} contributions={contributions} />
         </div>
       </div>
 

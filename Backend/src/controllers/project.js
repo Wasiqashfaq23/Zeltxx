@@ -154,30 +154,41 @@ export const inviteMember = async (req, res) => {
 
         if (existingUser) {
             const alreadyMember = projectDoc.members.some(m => m.user.toString() === existingUser._id.toString())
-            if (alreadyMember) return res.status(400).json({ message: 'User is already a member' })
+            if (alreadyMember) return res.status(400).json({ message: 'User is already a member of this project' })
 
-            projectDoc.members.push({ user: existingUser._id, role: role || 'collaborator' })
-            await projectDoc.save()
+            // Check if active pending notification exists
+            const existingNotif = await Notification.findOne({
+                user: existingUser._id,
+                project: projectDoc._id,
+                type: 'project_invite',
+                status: 'pending'
+            })
+            if (existingNotif) {
+                return res.status(400).json({ message: 'Invitation is already pending for this user' })
+            }
 
             const notif = await Notification.create({
                 user: existingUser._id,
                 type: 'project_invite',
-                message: `You were added to ${projectDoc.name}`,
-                project: projectDoc._id
+                message: `${inviterName} invited you to join project "${projectDoc.name}"`,
+                project: projectDoc._id,
+                inviterName,
+                status: 'pending'
             })
 
-            req.io?.to(`user_${existingUser._id.toString()}`).emit('notification', notif)
+            const populatedNotif = await notif.populate('project', 'name')
 
-            // Send Email Notification
+            req.io?.to(`user_${existingUser._id.toString()}`).emit('notification', populatedNotif)
+
+            // Send Email Invitation
             sendEmail({
                 to: existingUser.email,
-                subject: `🚀 Added to Project: ${projectDoc.name} on Zeltxx`,
-                text: `You have been added to project "${projectDoc.name}" by ${inviterName}. Access workspace: ${inviteUrl}`,
+                subject: `📩 ${inviterName} invited you to join ${projectDoc.name} on Zeltxx`,
+                text: `${inviterName} has invited you to join project "${projectDoc.name}". Access workspace: ${inviteUrl}`,
                 html: buildInviteEmailHtml({ projectName: projectDoc.name, inviteUrl, inviterName })
             })
 
-            const populated = await ProjectModel.findById(projectDoc._id).populate('members.user', 'name email avatar')
-            return res.json(populated)
+            return res.status(200).json({ message: `Invitation sent to ${existingUser.email}! Receiver can Accept or Reject in their notifications.` })
         }
 
         const existingInvite = await Invite.findOne({ project: projectDoc._id, email: email.toLowerCase() })
@@ -193,12 +204,12 @@ export const inviteMember = async (req, res) => {
         // Send Email Invitation to new user
         sendEmail({
             to: email.toLowerCase(),
-            subject: `📩 Invitation to join Zeltxx Project: ${projectDoc.name}`,
+            subject: `📩 ${inviterName} invited you to join Zeltxx Project: ${projectDoc.name}`,
             text: `You have been invited to join project "${projectDoc.name}" by ${inviterName}. Sign up to join: ${inviteUrl}`,
             html: buildInviteEmailHtml({ projectName: projectDoc.name, inviteUrl, inviterName })
         })
 
-        res.status(201).json({ message: `Invite sent to ${email}! Email notification dispatched.` })
+        res.status(201).json({ message: `Invitation email sent to ${email}!` })
     } catch (err) {
         res.status(500).json({ message: err.message })
     }

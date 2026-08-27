@@ -65,12 +65,31 @@ const AdminProjectDetail = () => {
   const [editOpen, setEditOpen] = useState(false)
   const [deleteOpen, setDeleteOpen] = useState(false)
   const [inviteOpen, setInviteOpen] = useState(false)
+  const [memberToRemove, setMemberToRemove] = useState(null)
+  const [removeDialogOpen, setRemoveDialogOpen] = useState(false)
+
+  const handlePromptRemove = (memberUser) => {
+    setMemberToRemove(memberUser)
+    setRemoveDialogOpen(true)
+  }
+
+  const confirmRemoveMember = () => {
+    if (!memberToRemove) return
+    const memberId = memberToRemove._id || memberToRemove
+    removeMember(id, memberId)
+      .then(() => {
+        refreshProject()
+        setRemoveDialogOpen(false)
+        setMemberToRemove(null)
+      })
+      .catch((err) => console.error(err))
+  }
 
   useEffect(() => {
     Promise.all([
       getProjectById(id),
       getProjectSummary(id),
-      getSnapshotsByRange(id, daysAgo(14), new Date().toISOString().split('T')[0])
+      getSnapshotsByRange(id, daysAgo(30), new Date().toISOString().split('T')[0])
     ])
       .then(([projectRes, summaryRes, snapshotsRes]) => {
         setProject(projectRes.data)
@@ -318,37 +337,45 @@ const AdminProjectDetail = () => {
           {project.members.length === 0 ? (
             <EmptyState message="No members yet" />
           ) : (
-            project.members.map((member) => (
-              <div
-                key={member.user._id}
-                className="flex flex-wrap sm:flex-nowrap items-center gap-3 border-b border-slate-100 dark:border-slate-800/60 px-4 sm:px-5 py-3 last:border-0"
-              >
-                <UserAvatar user={member.user} size="sm" />
-                <div className="min-w-0 flex-1">
-                  <p className="text-sm font-medium text-slate-900 dark:text-slate-100">{member.user.name}</p>
-                  <p className="text-xs text-slate-400 dark:text-slate-500 truncate">{member.user.email}</p>
+            project.members.map((member) => {
+              const memberUserId = member.user._id || member.user
+              const isCurrentLoggedInUser = memberUserId === user?._id
+
+              return (
+                <div
+                  key={memberUserId}
+                  className="flex flex-wrap sm:flex-nowrap items-center gap-3 border-b border-slate-100 dark:border-slate-800/60 px-4 sm:px-5 py-3 last:border-0"
+                >
+                  <UserAvatar user={member.user} size="sm" />
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm font-medium text-slate-900 dark:text-slate-100">{member.user.name}</p>
+                    <p className="text-xs text-slate-400 dark:text-slate-500 truncate">{member.user.email}</p>
+                  </div>
+                  <Badge
+                    variant="secondary"
+                    className={
+                      member.role === 'admin'
+                        ? 'bg-blue-50 text-blue-700 dark:bg-blue-950/80 dark:text-blue-300'
+                        : 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300'
+                    }
+                  >
+                    {member.role}
+                  </Badge>
+
+                  {!isCurrentLoggedInUser && member.role !== 'admin' && (
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => handlePromptRemove(member.user)}
+                      className="hover:text-red-500 text-slate-400 ml-auto sm:ml-0"
+                      aria-label={`Remove ${member.user.name} from project`}
+                    >
+                      <UserMinus className="h-4 w-4" />
+                    </Button>
+                  )}
                 </div>
-                <Badge
-                  variant="secondary"
-                  className={
-                    member.role === 'admin'
-                      ? 'bg-blue-50 text-blue-700 dark:bg-blue-950/80 dark:text-blue-300'
-                      : 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300'
-                  }
-                >
-                  {member.role}
-                </Badge>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => handleRemove(member.user._id)}
-                  className="hover:text-[#dc2626] ml-auto sm:ml-0"
-                  aria-label={`Remove ${member.user.name} from project`}
-                >
-                  <UserMinus className="h-4 w-4" />
-                </Button>
-              </div>
-            ))
+              )
+            })
           )}
         </CardContent>
       </Card>
@@ -422,7 +449,7 @@ const AdminProjectDetail = () => {
           <DialogHeader>
             <DialogTitle>Invite Member</DialogTitle>
             <DialogDescription>
-              Invite someone by email. If they don't have a Zeliq account yet, they'll be added automatically when they sign in.
+              Invite someone by email. If they don't have a Zeltxx account yet, an invitation will be sent to them.
             </DialogDescription>
           </DialogHeader>
           {inviteError && (
@@ -457,6 +484,34 @@ const AdminProjectDetail = () => {
             <Button variant="outline" onClick={() => setInviteOpen(false)}>Cancel</Button>
             <Button onClick={handleInvite} disabled={!inviteEmail} className="bg-[#4f46e5] hover:bg-[#4338ca]">
               Send Invite
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Remove Member Confirmation Modal */}
+      <Dialog open={removeDialogOpen} onOpenChange={setRemoveDialogOpen}>
+        <DialogContent className="border-slate-800 bg-slate-900 text-slate-100 max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-red-400 flex items-center gap-2 text-base font-semibold">
+              <UserMinus className="h-5 w-5" />
+              Remove Collaborator
+            </DialogTitle>
+            <DialogDescription className="text-slate-300 pt-2 text-sm">
+              Are you sure you want to remove <strong className="text-slate-100">{memberToRemove?.name}</strong> ({memberToRemove?.email}) from <strong className="text-slate-100">{project?.name}</strong>?
+              They will immediately lose access to this project workspace.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="mt-4 gap-2 sm:gap-0">
+            <Button type="button" variant="outline" onClick={() => setRemoveDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button
+              type="button"
+              className="bg-red-600 hover:bg-red-700 text-white font-medium ml-2"
+              onClick={confirmRemoveMember}
+            >
+              Confirm Remove
             </Button>
           </DialogFooter>
         </DialogContent>
