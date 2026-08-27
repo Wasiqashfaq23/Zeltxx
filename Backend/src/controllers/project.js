@@ -2,6 +2,7 @@ import ProjectModel from "../models/project.js"
 import Invite from "../models/invite.js"
 import Notification from "../models/notification.js"
 import User from "../models/user.js"
+import { sendEmail, buildInviteEmailHtml } from "../config/mailer.js"
 
 export const createProject = async (req, res) => {
     try {
@@ -104,6 +105,10 @@ export const inviteMember = async (req, res) => {
             return res.status(403).json({ message: 'Only project admins can invite members' })
         }
 
+        const clientUrl = process.env.CLIENT_URL || 'http://localhost:5173'
+        const inviteUrl = `${clientUrl}/projects/${projectDoc._id}`
+        const inviterName = req.user?.name || 'Workspace Admin'
+
         const existingUser = await User.findOne({ email: email.toLowerCase() })
 
         if (existingUser) {
@@ -122,6 +127,14 @@ export const inviteMember = async (req, res) => {
 
             req.io?.to(`user_${existingUser._id.toString()}`).emit('notification', notif)
 
+            // Send Email Notification
+            sendEmail({
+                to: existingUser.email,
+                subject: `🚀 Added to Project: ${projectDoc.name} on Zeltxx`,
+                text: `You have been added to project "${projectDoc.name}" by ${inviterName}. Access workspace: ${inviteUrl}`,
+                html: buildInviteEmailHtml({ projectName: projectDoc.name, inviteUrl, inviterName })
+            })
+
             const populated = await ProjectModel.findById(projectDoc._id).populate('members.user', 'name email avatar')
             return res.json(populated)
         }
@@ -136,7 +149,15 @@ export const inviteMember = async (req, res) => {
             invitedBy: req.user._id
         })
 
-        res.status(201).json({ message: `Invite created for ${email}. They will be added once they sign in.` })
+        // Send Email Invitation to new user
+        sendEmail({
+            to: email.toLowerCase(),
+            subject: `📩 Invitation to join Zeltxx Project: ${projectDoc.name}`,
+            text: `You have been invited to join project "${projectDoc.name}" by ${inviterName}. Sign up to join: ${inviteUrl}`,
+            html: buildInviteEmailHtml({ projectName: projectDoc.name, inviteUrl, inviterName })
+        })
+
+        res.status(201).json({ message: `Invite sent to ${email}! Email notification dispatched.` })
     } catch (err) {
         res.status(500).json({ message: err.message })
     }
