@@ -10,13 +10,6 @@
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "devEngines": {
-    "packageManager": {
-      "name": "pnpm",
-      "version": "^11.9.0",
-      "onFail": "download"
-    }
-  },
   "type": "module",
   "dependencies": {
     "cookie-parser": "^1.4.7",
