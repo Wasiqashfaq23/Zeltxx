@@ -10,6 +10,10 @@ const projectSchema = new Schema({
     description: {
         type: String
     },
+    githubUrl: {
+        type: String,
+        default: ''
+    },
     notes: {
         type: String,
         default: ''

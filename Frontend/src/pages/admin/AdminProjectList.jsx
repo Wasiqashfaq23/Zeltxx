@@ -28,6 +28,7 @@ const AdminProjectList = () => {
   const [dialogOpen, setDialogOpen] = useState(false)
   const [name, setName] = useState('')
   const [description, setDescription] = useState('')
+  const [githubUrl, setGithubUrl] = useState('')
 
   useEffect(() => {
     getProjects()
@@ -43,11 +44,12 @@ const AdminProjectList = () => {
 
   const handleCreate = (e) => {
     e.preventDefault()
-    createProject({ name, description })
+    createProject({ name, description, githubUrl })
       .then((res) => {
         setProjects((prev) => [...prev, res.data])
         setName('')
         setDescription('')
+        setGithubUrl('')
         setDialogOpen(false)
       })
       .catch((err) => console.error(err))
@@ -135,8 +137,22 @@ const AdminProjectList = () => {
                 id="admin-desc"
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
+                placeholder="Brief project description"
                 className="mt-1"
               />
+            </div>
+            <div>
+              <Label htmlFor="admin-gh" className="text-slate-700 dark:text-slate-300 font-medium">GitHub Repository URL (Optional)</Label>
+              <Input
+                id="admin-gh"
+                value={githubUrl}
+                onChange={(e) => setGithubUrl(e.target.value)}
+                placeholder="e.g. Wasiqashfaq23/Zeltxx or https://github.com/owner/repo"
+                className="mt-1"
+              />
+              <p className="mt-1 text-[11px] text-slate-500 dark:text-slate-400">
+                Provide a GitHub repo to auto-synchronize initial commits upon creation!
+              </p>
             </div>
             <DialogFooter>
               <Button type="button" variant="outline" onClick={() => setDialogOpen(false)}>

@@ -8,17 +8,36 @@ import Chat from "../models/chat.js"
 import Resource from "../models/resource.js"
 import Snapshot from "../models/snapshot.js"
 import { sendEmail, buildInviteEmailHtml } from "../config/mailer.js"
+import { syncGitHubCommitsInternal } from "./github.js"
 
 export const createProject = async (req, res) => {
     try {
-        const { name, description } = req.body
+        const { name, description, githubUrl } = req.body
 
         const projectDoc = await ProjectModel.create({
             name,
             description,
+            githubUrl: githubUrl ? githubUrl.trim() : '',
             members: [{ user: req.user._id, role: 'admin' }]
         })
-        res.status(201).json(projectDoc)
+
+        // Auto-add Resource link if GitHub URL provided
+        if (githubUrl && githubUrl.trim()) {
+            await Resource.create({
+                project: projectDoc._id,
+                title: `${name} GitHub Repository`,
+                url: githubUrl.trim(),
+                type: 'github',
+                addedBy: req.user._id
+            }).catch((e) => console.error('Auto resource creation warning:', e.message))
+
+            // Trigger background auto-sync of initial GitHub commits
+            syncGitHubCommitsInternal(projectDoc._id, githubUrl.trim(), req.user._id, req.io)
+                .catch((e) => console.error('Initial GitHub auto-sync warning:', e.message))
+        }
+
+        const populated = await ProjectModel.findById(projectDoc._id).populate("members.user", "name email avatar")
+        res.status(201).json(populated)
     } catch (error) {
         res.status(400).json({ message: error.message })
     }
@@ -51,7 +70,7 @@ export const getProjectById = async (req, res) => {
 
 export const updateProject = async (req, res) => {
     try {
-        const { name, description } = req.body
+        const { name, description, githubUrl } = req.body
         const projectDoc = await ProjectModel.findById(req.params.id)
         if (!projectDoc || !projectDoc.isActive) {
             return res.status(404).json({ message: 'Project not found' })
@@ -66,7 +85,13 @@ export const updateProject = async (req, res) => {
 
         projectDoc.name = name !== undefined ? name : projectDoc.name
         projectDoc.description = description !== undefined ? description : projectDoc.description
+        projectDoc.githubUrl = githubUrl !== undefined ? githubUrl.trim() : projectDoc.githubUrl
         await projectDoc.save()
+
+        if (githubUrl && githubUrl.trim()) {
+            syncGitHubCommitsInternal(projectDoc._id, githubUrl.trim(), req.user._id, req.io)
+                .catch((e) => console.error('GitHub update sync warning:', e.message))
+        }
 
         const populated = await ProjectModel.findById(projectDoc._id).populate('members.user', 'name email avatar')
         res.status(200).json(populated)

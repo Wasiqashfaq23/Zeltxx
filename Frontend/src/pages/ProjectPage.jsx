@@ -173,6 +173,16 @@ const ProjectPage = () => {
   })
 
   if (loading) return <Loader />
+  if (!project) {
+    return (
+      <Layout>
+        <EmptyState
+          message="Project not found or you do not have permission to view this project workspace."
+          action={{ label: 'Back to Dashboard', onClick: () => navigate('/dashboard') }}
+        />
+      </Layout>
+    )
+  }
 
   return (
     <Layout>

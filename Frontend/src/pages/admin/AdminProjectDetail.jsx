@@ -136,7 +136,17 @@ const AdminProjectDetail = () => {
   }
 
   if (loading) return <Loader />
-  if (project && role !== 'admin') return <Navigate to="/unauthorized" replace />
+  if (!project) {
+    return (
+      <Layout>
+        <EmptyState
+          message="Project not found or you do not have permission to access this project admin view."
+          action={{ label: 'Back to Dashboard', onClick: () => navigate('/dashboard') }}
+        />
+      </Layout>
+    )
+  }
+  if (role !== 'admin') return <Navigate to="/unauthorized" replace />
 
   const totalWeight = summary.reduce((sum, entry) => sum + entry.totalWeight, 0)
   const rankedSummary = [...summary].sort((a, b) => b.totalWeight - a.totalWeight)

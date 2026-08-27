@@ -30,6 +30,7 @@ const Dashboard = () => {
   const [dialogOpen, setDialogOpen] = useState(false)
   const [name, setName] = useState('')
   const [description, setDescription] = useState('')
+  const [githubUrl, setGithubUrl] = useState('')
   const [searchQuery, setSearchQuery] = useState('')
   const [roleFilter, setRoleFilter] = useState('all')
 
@@ -45,11 +46,12 @@ const Dashboard = () => {
 
   const handleCreate = (e) => {
     e.preventDefault()
-    createProject({ name, description })
+    createProject({ name, description, githubUrl })
       .then((res) => {
         setProjects((prev) => [...prev, res.data])
         setName('')
         setDescription('')
+        setGithubUrl('')
         setDialogOpen(false)
       })
       .catch((err) => console.error(err))
@@ -216,13 +218,27 @@ const Dashboard = () => {
               />
             </div>
             <div>
-              <Label htmlFor="project-desc">Description</Label>
+              <Label htmlFor="project-desc" className="text-slate-700 dark:text-slate-300">Description</Label>
               <Input
                 id="project-desc"
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
-                className="mt-1 border-[#e8e8ef]"
+                placeholder="Brief project description"
+                className="mt-1"
               />
+            </div>
+            <div>
+              <Label htmlFor="project-gh" className="text-slate-700 dark:text-slate-300 font-medium">GitHub Repository URL (Optional)</Label>
+              <Input
+                id="project-gh"
+                value={githubUrl}
+                onChange={(e) => setGithubUrl(e.target.value)}
+                placeholder="e.g. Wasiqashfaq23/Zeltxx or https://github.com/owner/repo"
+                className="mt-1"
+              />
+              <p className="mt-1 text-[11px] text-slate-500 dark:text-slate-400">
+                Provide a GitHub repo to auto-synchronize initial commits upon creation!
+              </p>
             </div>
             <DialogFooter>
               <Button type="button" variant="outline" onClick={() => setDialogOpen(false)}>
