@@ -16,7 +16,7 @@ import {
 
 const WebhookSimulator = ({ projectId }) => {
   // Real GitHub API Sync State
-  const [repoUrl, setRepoUrl] = useState('https://github.com/Wasiqashfaq23/Zeltxx')
+  const [repoUrl, setRepoUrl] = useState('')
   const [patToken, setPatToken] = useState('')
   const [syncing, setSyncing] = useState(false)
   const [syncMessage, setSyncMessage] = useState('')
@@ -101,7 +101,7 @@ const WebhookSimulator = ({ projectId }) => {
                   id="gh-repo"
                   value={repoUrl}
                   onChange={(e) => setRepoUrl(e.target.value)}
-                  placeholder="e.g. Wasiqashfaq23/Zeltxx or https://github.com/facebook/react"
+                  placeholder="e.g. facebook/react or https://github.com/owner/repo"
                   required
                   className="flex-1"
                 />

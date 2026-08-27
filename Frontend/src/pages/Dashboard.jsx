@@ -233,7 +233,7 @@ const Dashboard = () => {
                 id="project-gh"
                 value={githubUrl}
                 onChange={(e) => setGithubUrl(e.target.value)}
-                placeholder="e.g. Wasiqashfaq23/Zeltxx or https://github.com/owner/repo"
+                placeholder="e.g. facebook/react or https://github.com/owner/repo"
                 className="mt-1"
               />
               <p className="mt-1 text-[11px] text-slate-500 dark:text-slate-400">
