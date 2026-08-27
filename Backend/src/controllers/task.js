@@ -2,23 +2,28 @@ import Task from '../models/task.js'
 import Project from '../models/project.js'
 import Contribution from '../models/contribution.js'
 
+/**
+ * Helper to verify user is a member of the project
+ */
+async function verifyProjectMember(projectId, userId) {
+  const project = await Project.findById(projectId)
+  if (!project || !project.isActive) return false
+  return project.members.some((m) => m.user.toString() === userId.toString())
+}
+
 export const getTasks = async (req, res) => {
   try {
     const { projectId } = req.params
-    const project = await Project.findById(projectId)
-    if (!project) return res.status(404).json({ message: 'Project not found' })
-
-    const isMember = project.members.some(
-      (m) => m.user.toString() === req.user._id.toString()
-    )
-    if (!isMember) return res.status(403).json({ message: 'Not a member of this project' })
+    const isMember = await verifyProjectMember(projectId, req.user._id)
+    if (!isMember) {
+      return res.status(403).json({ message: 'Not authorized to view tasks for this project' })
+    }
 
     const tasks = await Task.find({ project: projectId })
       .populate('assignedTo', 'name email avatar')
       .populate('createdBy', 'name email avatar')
       .populate('comments.user', 'name email avatar')
       .sort({ createdAt: -1 })
-
     res.json(tasks)
   } catch (err) {
     res.status(500).json({ message: err.message })
@@ -28,24 +33,23 @@ export const getTasks = async (req, res) => {
 export const createTask = async (req, res) => {
   try {
     const { projectId } = req.params
-    const { title, description, priority, assignedTo, dueDate } = req.body
+    const { title, description, status, priority, assignedTo, dueDate, subtasks } = req.body
 
-    const project = await Project.findById(projectId)
-    if (!project) return res.status(404).json({ message: 'Project not found' })
-
-    const isMember = project.members.some(
-      (m) => m.user.toString() === req.user._id.toString()
-    )
-    if (!isMember) return res.status(403).json({ message: 'Not a member of this project' })
+    const isMember = await verifyProjectMember(projectId, req.user._id)
+    if (!isMember) {
+      return res.status(403).json({ message: 'Not authorized to create tasks in this project' })
+    }
 
     const task = await Task.create({
+      project: projectId,
       title,
       description,
+      status: status || 'todo',
       priority: priority || 'medium',
-      dueDate: dueDate || null,
       assignedTo: assignedTo || null,
-      project: projectId,
-      createdBy: req.user._id
+      createdBy: req.user._id,
+      dueDate: dueDate || null,
+      subtasks: subtasks || []
     })
 
     const populated = await task.populate([
@@ -68,6 +72,11 @@ export const updateTask = async (req, res) => {
 
     const task = await Task.findById(id)
     if (!task) return res.status(404).json({ message: 'Task not found' })
+
+    const isMember = await verifyProjectMember(task.project, req.user._id)
+    if (!isMember) {
+      return res.status(403).json({ message: 'Not authorized to edit tasks in this project' })
+    }
 
     const previousStatus = task.status
 
@@ -114,6 +123,11 @@ export const addSubtask = async (req, res) => {
     const task = await Task.findById(id)
     if (!task) return res.status(404).json({ message: 'Task not found' })
 
+    const isMember = await verifyProjectMember(task.project, req.user._id)
+    if (!isMember) {
+      return res.status(403).json({ message: 'Not authorized to modify subtasks in this project' })
+    }
+
     task.subtasks.push({ title, completed: false })
     await task.save()
 
@@ -136,6 +150,11 @@ export const toggleSubtask = async (req, res) => {
 
     const task = await Task.findById(id)
     if (!task) return res.status(404).json({ message: 'Task not found' })
+
+    const isMember = await verifyProjectMember(task.project, req.user._id)
+    if (!isMember) {
+      return res.status(403).json({ message: 'Not authorized to modify subtasks in this project' })
+    }
 
     const sub = task.subtasks.id(subtaskId)
     if (sub) {
@@ -164,6 +183,11 @@ export const addTaskComment = async (req, res) => {
     const task = await Task.findById(id)
     if (!task) return res.status(404).json({ message: 'Task not found' })
 
+    const isMember = await verifyProjectMember(task.project, req.user._id)
+    if (!isMember) {
+      return res.status(403).json({ message: 'Not authorized to comment on tasks in this project' })
+    }
+
     task.comments.push({
       user: req.user._id,
       text,
@@ -190,11 +214,14 @@ export const deleteTask = async (req, res) => {
     const task = await Task.findById(id)
     if (!task) return res.status(404).json({ message: 'Task not found' })
 
-    const projectId = task.project.toString()
-    await Task.findByIdAndDelete(id)
+    const isMember = await verifyProjectMember(task.project, req.user._id)
+    if (!isMember) {
+      return res.status(403).json({ message: 'Not authorized to delete tasks in this project' })
+    }
 
-    req.io?.to(projectId).emit('task_deleted', id)
-    res.json({ message: 'Task deleted' })
+    await Task.findByIdAndDelete(id)
+    req.io?.to(task.project.toString()).emit('task_deleted', { id })
+    res.json({ message: 'Task deleted successfully' })
   } catch (err) {
     res.status(500).json({ message: err.message })
   }

@@ -2,6 +2,11 @@ import ProjectModel from "../models/project.js"
 import Invite from "../models/invite.js"
 import Notification from "../models/notification.js"
 import User from "../models/user.js"
+import Task from "../models/task.js"
+import Contribution from "../models/contribution.js"
+import Chat from "../models/chat.js"
+import Resource from "../models/resource.js"
+import Snapshot from "../models/snapshot.js"
 import { sendEmail, buildInviteEmailHtml } from "../config/mailer.js"
 
 export const createProject = async (req, res) => {
@@ -72,7 +77,8 @@ export const updateProject = async (req, res) => {
 
 export const deleteProject = async (req, res) => {
     try {
-        const projectDoc = await ProjectModel.findById(req.params.id)
+        const projectId = req.params.id
+        const projectDoc = await ProjectModel.findById(projectId)
         if (!projectDoc) {
             return res.status(404).json({ message: 'Project not found' })
         }
@@ -84,8 +90,18 @@ export const deleteProject = async (req, res) => {
             return res.status(403).json({ message: 'Only project admins can delete a project' })
         }
 
-        await ProjectModel.findByIdAndDelete(req.params.id)
-        res.status(200).json({ message: 'Project deleted successfully' })
+        // Cascade delete all associated documents
+        await Promise.all([
+            ProjectModel.findByIdAndDelete(projectId),
+            Task.deleteMany({ project: projectId }),
+            Contribution.deleteMany({ project: projectId }),
+            Chat.deleteMany({ project: projectId }),
+            Resource.deleteMany({ project: projectId }),
+            Snapshot.deleteMany({ project: projectId }),
+            Invite.deleteMany({ project: projectId })
+        ])
+
+        res.status(200).json({ message: 'Project and all associated resources deleted successfully' })
     } catch (err) {
         res.status(500).json({ message: err.message })
     }

@@ -1,12 +1,28 @@
 import { Server } from 'socket.io'
+import jwt from 'jsonwebtoken'
 
 const activeRoomUsers = new Map() // projectId -> Map(socketId -> userObj)
 
 export const initSocket = (httpServer) => {
   const io = new Server(httpServer, {
     cors: {
-      origin: process.env.CLIENT_URL,
+      origin: process.env.CLIENT_URL || 'http://localhost:5173',
       credentials: true
+    }
+  })
+
+  // Middleware to authenticate socket connections via JWT cookie or handshake auth token
+  io.use((socket, next) => {
+    try {
+      const token = socket.handshake.auth?.token || socket.handshake.headers?.cookie?.split('token=')[1]?.split(';')[0]
+      if (token && process.env.JWT_SECRET) {
+        const decoded = jwt.verify(token, process.env.JWT_SECRET)
+        socket.user = decoded
+      }
+      next()
+    } catch (err) {
+      // Allow connection but unauthenticated socket flags
+      next()
     }
   })
 
@@ -15,7 +31,7 @@ export const initSocket = (httpServer) => {
 
     socket.on('join_project', (data) => {
       const projectId = typeof data === 'string' ? data : data?.projectId
-      const user = typeof data === 'object' ? data?.user : null
+      const user = typeof data === 'object' ? data?.user : socket.user
       currentProject = projectId
 
       if (projectId) {
@@ -45,13 +61,13 @@ export const initSocket = (httpServer) => {
 
     socket.on('typing_start', ({ projectId, user }) => {
       if (projectId) {
-        socket.to(projectId).emit('user_typing_start', user)
+        socket.to(projectId).emit('user_typing_start', user || socket.user)
       }
     })
 
     socket.on('typing_stop', ({ projectId, user }) => {
       if (projectId) {
-        socket.to(projectId).emit('user_typing_stop', user)
+        socket.to(projectId).emit('user_typing_stop', user || socket.user)
       }
     })
 

@@ -17,6 +17,7 @@ import {
 const WebhookSimulator = ({ projectId }) => {
   // Real GitHub API Sync State
   const [repoUrl, setRepoUrl] = useState('https://github.com/Wasiqashfaq23/Zeltxx')
+  const [patToken, setPatToken] = useState('')
   const [syncing, setSyncing] = useState(false)
   const [syncMessage, setSyncMessage] = useState('')
   const [syncedCommits, setSyncedCommits] = useState([])
@@ -35,7 +36,7 @@ const WebhookSimulator = ({ projectId }) => {
     setSyncMessage('')
 
     try {
-      const res = await syncGitHubCommits(projectId, { repoUrl })
+      const res = await syncGitHubCommits(projectId, { repoUrl, personalAccessToken: patToken })
       setSyncMessage(res.data.message || 'Synced GitHub commits successfully!')
       setSyncedCommits(res.data.commits || [])
     } catch (err) {
