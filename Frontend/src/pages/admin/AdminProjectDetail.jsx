@@ -193,29 +193,29 @@ const AdminProjectDetail = () => {
           </button>
         </div>
       )}
-      <Card className="mb-6 border-[#e8e8ef] bg-white shadow-sm">
+      <Card className="mb-6 border-slate-200 bg-white shadow-xs dark:border-slate-800 dark:bg-slate-900">
         <CardContent className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5">
           <div>
-            <h1 className="text-2xl font-bold text-[#1a1a2e]">{project.name}</h1>
-            <p className="mt-1 text-[#6b7280]">{project.description || 'No description'}</p>
+            <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">{project.name}</h1>
+            <p className="mt-1 text-slate-500 dark:text-slate-400">{project.description || 'No description'}</p>
           </div>
           <div className="flex gap-2">
-            <Button variant="ghost" onClick={() => setEditOpen(true)}>Edit</Button>
+            <Button variant="ghost" onClick={() => setEditOpen(true)} className="text-slate-700 dark:text-slate-300">Edit</Button>
             <Button variant="destructive" onClick={() => setDeleteOpen(true)}>Delete</Button>
           </div>
         </CardContent>
       </Card>
 
       <div className="mb-6 grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card className="border-[#e8e8ef] bg-white shadow-sm">
-          <CardHeader className="flex flex-row items-center justify-between border-b border-[#e8e8ef] px-5 py-4">
-            <CardTitle className="text-base font-semibold">Leaderboard</CardTitle>
+        <Card className="border-slate-200 bg-white shadow-xs dark:border-slate-800 dark:bg-slate-900">
+          <CardHeader className="flex flex-row items-center justify-between border-b border-slate-200 px-5 py-4 dark:border-slate-800">
+            <CardTitle className="text-base font-semibold text-slate-900 dark:text-slate-100">Leaderboard</CardTitle>
             {rankedSummary.length > 0 && (
               <Button
                 variant="ghost"
                 size="xs"
                 onClick={handleExportLeaderboardCSV}
-                className="text-xs text-[#4f46e5] hover:text-[#4338ca]"
+                className="text-xs text-blue-600 hover:text-blue-700 dark:text-blue-400"
               >
                 <Download className="h-3.5 w-3.5" />
                 Export
@@ -229,12 +229,12 @@ const AdminProjectDetail = () => {
               <div className="overflow-x-auto">
                 <Table>
                   <TableHeader>
-                    <TableRow className="border-[#e8e8ef] hover:bg-transparent">
-                      <TableHead className="text-[#6b7280]">Rank</TableHead>
-                      <TableHead className="text-[#6b7280]">Member</TableHead>
-                      <TableHead className="text-[#6b7280]">Contributions</TableHead>
-                      <TableHead className="text-[#6b7280]">Score</TableHead>
-                      <TableHead className="text-[#6b7280]">Share</TableHead>
+                    <TableRow className="border-slate-200 hover:bg-transparent dark:border-slate-800">
+                      <TableHead className="text-slate-500 dark:text-slate-400">Rank</TableHead>
+                      <TableHead className="text-slate-500 dark:text-slate-400">Member</TableHead>
+                      <TableHead className="text-slate-500 dark:text-slate-400">Contributions</TableHead>
+                      <TableHead className="text-slate-500 dark:text-slate-400">Score</TableHead>
+                      <TableHead className="text-slate-500 dark:text-slate-400">Share</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -244,21 +244,21 @@ const AdminProjectDetail = () => {
                           ? ((entry.totalWeight / totalWeight) * 100).toFixed(1)
                           : 0
                       return (
-                        <TableRow key={entry._id} className="border-[#f0f0f5]">
+                        <TableRow key={entry._id} className="border-slate-100 dark:border-slate-800/60">
                           <TableCell
-                            className={`font-bold ${index < 2 ? 'text-[#4f46e5]' : 'text-[#1a1a2e]'}`}
+                            className={`font-bold ${index < 2 ? 'text-blue-600 dark:text-blue-400' : 'text-slate-900 dark:text-slate-100'}`}
                           >
                             #{index + 1}
                           </TableCell>
                           <TableCell>
                             <div className="flex items-center gap-2">
                               <UserAvatar user={entry.user} size="xs" />
-                              <span className="font-medium">{entry.user.name}</span>
+                              <span className="font-medium text-slate-900 dark:text-slate-100">{entry.user.name}</span>
                             </div>
                           </TableCell>
-                          <TableCell className="text-[#6b7280]">{entry.totalCount}</TableCell>
-                          <TableCell className="text-[#6b7280]">{entry.totalWeight}</TableCell>
-                          <TableCell className="text-[#6b7280]">{share}%</TableCell>
+                          <TableCell className="text-slate-500 dark:text-slate-400">{entry.totalCount}</TableCell>
+                          <TableCell className="text-slate-500 dark:text-slate-400">{entry.totalWeight}</TableCell>
+                          <TableCell className="text-slate-500 dark:text-slate-400">{share}%</TableCell>
                         </TableRow>
                       )
                     })}
@@ -269,9 +269,9 @@ const AdminProjectDetail = () => {
           </CardContent>
         </Card>
 
-        <Card className="border-[#e8e8ef] bg-white shadow-sm">
-          <CardHeader className="border-b border-[#e8e8ef] px-5 py-4">
-            <CardTitle className="text-base font-semibold">Contribution Breakdown</CardTitle>
+        <Card className="border-slate-200 bg-white shadow-xs dark:border-slate-800 dark:bg-slate-900">
+          <CardHeader className="border-b border-slate-200 px-5 py-4 dark:border-slate-800">
+            <CardTitle className="text-base font-semibold text-slate-900 dark:text-slate-100">Contribution Breakdown</CardTitle>
           </CardHeader>
           <CardContent className="p-5">
             <ContribTypeDonut breakdown={combinedBreakdown} />
@@ -279,22 +279,23 @@ const AdminProjectDetail = () => {
         </Card>
       </div>
 
-      <Card className="mb-6 border-[#e8e8ef] bg-white shadow-sm">
-        <CardHeader className="border-b border-[#e8e8ef] px-5 py-4">
-          <CardTitle className="text-base font-semibold">14 Day Activity</CardTitle>
+      <Card className="mb-6 border-slate-200 bg-white shadow-xs dark:border-slate-800 dark:bg-slate-900">
+        <CardHeader className="border-b border-slate-200 px-5 py-4 dark:border-slate-800">
+          <CardTitle className="text-base font-semibold text-slate-900 dark:text-slate-100">14 Day Activity</CardTitle>
         </CardHeader>
         <CardContent className="p-5">
           <ActivityLineChart snapshots={snapshots} members={project?.members || []} />
         </CardContent>
       </Card>
 
-      <Card className="mb-6 border-[#e8e8ef] bg-white shadow-sm">
-        <CardHeader className="flex flex-row items-center justify-between border-b border-[#e8e8ef] px-5 py-4">
-          <CardTitle className="text-base font-semibold">Members</CardTitle>
+      <Card className="mb-6 border-slate-200 bg-white shadow-xs dark:border-slate-800 dark:bg-slate-900">
+        <CardHeader className="flex flex-row items-center justify-between border-b border-slate-200 px-5 py-4 dark:border-slate-800">
+          <CardTitle className="text-base font-semibold text-slate-900 dark:text-slate-100">Members</CardTitle>
           <Button
             variant="ghost"
             size="sm"
             onClick={() => setInviteOpen(true)}
+            className="text-blue-600 hover:text-blue-700 dark:text-blue-400"
           >
             <UserPlus className="h-4 w-4" />
             Invite
@@ -307,19 +308,19 @@ const AdminProjectDetail = () => {
             project.members.map((member) => (
               <div
                 key={member.user._id}
-                className="flex flex-wrap sm:flex-nowrap items-center gap-3 border-b border-[#f0f0f5] px-4 sm:px-5 py-3 last:border-0"
+                className="flex flex-wrap sm:flex-nowrap items-center gap-3 border-b border-slate-100 dark:border-slate-800/60 px-4 sm:px-5 py-3 last:border-0"
               >
                 <UserAvatar user={member.user} size="sm" />
                 <div className="min-w-0 flex-1">
-                  <p className="text-sm font-medium text-[#1a1a2e]">{member.user.name}</p>
-                  <p className="text-xs text-[#9ca3af] truncate">{member.user.email}</p>
+                  <p className="text-sm font-medium text-slate-900 dark:text-slate-100">{member.user.name}</p>
+                  <p className="text-xs text-slate-400 dark:text-slate-500 truncate">{member.user.email}</p>
                 </div>
                 <Badge
                   variant="secondary"
                   className={
                     member.role === 'admin'
-                      ? 'bg-[#ede9fe] text-[#4f46e5]'
-                      : 'bg-[#f4f4f7] text-[#6b7280]'
+                      ? 'bg-blue-50 text-blue-700 dark:bg-blue-950/80 dark:text-blue-300'
+                      : 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300'
                   }
                 >
                   {member.role}
