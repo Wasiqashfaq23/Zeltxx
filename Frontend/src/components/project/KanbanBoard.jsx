@@ -24,15 +24,15 @@ import {
 } from '@/components/ui/select'
 
 const COLUMNS = [
-  { id: 'todo', title: 'To Do', icon: ListTodo, color: 'text-amber-500', bg: 'bg-amber-50' },
-  { id: 'in_progress', title: 'In Progress', icon: Clock, color: 'text-indigo-500', bg: 'bg-indigo-50' },
-  { id: 'done', title: 'Completed', icon: CheckCircle2, color: 'text-emerald-500', bg: 'bg-emerald-50' }
+  { id: 'todo', title: 'To Do', icon: ListTodo, color: 'text-slate-600', bg: 'bg-slate-100' },
+  { id: 'in_progress', title: 'In Progress', icon: Clock, color: 'text-blue-600', bg: 'bg-blue-50' },
+  { id: 'done', title: 'Completed', icon: CheckCircle2, color: 'text-slate-900', bg: 'bg-slate-200' }
 ]
 
 const PRIORITY_STYLES = {
-  low: 'bg-[#f4f4f7] text-[#6b7280]',
-  medium: 'bg-[#ede9fe] text-[#4f46e5]',
-  high: 'bg-rose-100 text-rose-700'
+  low: 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300',
+  medium: 'bg-blue-50 text-blue-700 dark:bg-blue-950/60 dark:text-blue-300',
+  high: 'bg-red-50 text-red-700 dark:bg-red-950/60 dark:text-red-300'
 }
 
 const KanbanBoard = ({ projectId, members }) => {
@@ -477,7 +477,7 @@ const KanbanBoard = ({ projectId, members }) => {
               <Button type="button" variant="outline" onClick={() => setCreateOpen(false)}>
                 Cancel
               </Button>
-              <Button type="submit" className="bg-[#4f46e5] hover:bg-[#4338ca]">
+              <Button type="submit" className="bg-blue-600 hover:bg-blue-700">
                 Create Task
               </Button>
             </DialogFooter>

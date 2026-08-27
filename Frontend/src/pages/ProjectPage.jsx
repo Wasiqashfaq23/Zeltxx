@@ -194,7 +194,7 @@ const ProjectPage = () => {
         <div>
           <div className="flex items-center gap-3">
             <h1 className="text-2xl font-bold text-[#1a1a2e] dark:text-slate-100">{project.name}</h1>
-            <Badge variant="secondary" className="bg-[#ede9fe] text-[#4f46e5] font-semibold capitalize">
+            <Badge variant="secondary" className="bg-blue-50 text-blue-600 dark:bg-blue-950/60 dark:text-blue-400 font-semibold capitalize">
               {role}
             </Badge>
           </div>
@@ -240,8 +240,8 @@ const ProjectPage = () => {
           onClick={() => setActiveTab('feed')}
           className={
             activeTab === 'feed'
-              ? 'bg-[#4f46e5] text-white hover:bg-[#4338ca]'
-              : 'text-[#6b7280] hover:bg-[#f4f4f7]'
+              ? 'bg-blue-600 text-white hover:bg-blue-700'
+              : 'text-[#6b7280] hover:bg-[#f4f4f7] dark:text-slate-400 dark:hover:bg-slate-800'
           }
         >
           <Activity className="h-4 w-4" />
@@ -253,8 +253,8 @@ const ProjectPage = () => {
           onClick={() => setActiveTab('kanban')}
           className={
             activeTab === 'kanban'
-              ? 'bg-[#4f46e5] text-white hover:bg-[#4338ca]'
-              : 'text-[#6b7280] hover:bg-[#f4f4f7]'
+              ? 'bg-blue-600 text-white hover:bg-blue-700'
+              : 'text-[#6b7280] hover:bg-[#f4f4f7] dark:text-slate-400 dark:hover:bg-slate-800'
           }
         >
           <Columns3 className="h-4 w-4" />
@@ -266,8 +266,8 @@ const ProjectPage = () => {
           onClick={() => setActiveTab('calendar')}
           className={
             activeTab === 'calendar'
-              ? 'bg-[#4f46e5] text-white hover:bg-[#4338ca]'
-              : 'text-[#6b7280] hover:bg-[#f4f4f7]'
+              ? 'bg-blue-600 text-white hover:bg-blue-700'
+              : 'text-[#6b7280] hover:bg-[#f4f4f7] dark:text-slate-400 dark:hover:bg-slate-800'
           }
         >
           <CalendarIcon className="h-4 w-4" />
@@ -279,8 +279,8 @@ const ProjectPage = () => {
           onClick={() => setActiveTab('chat')}
           className={
             activeTab === 'chat'
-              ? 'bg-[#4f46e5] text-white hover:bg-[#4338ca]'
-              : 'text-[#6b7280] hover:bg-[#f4f4f7]'
+              ? 'bg-blue-600 text-white hover:bg-blue-700'
+              : 'text-[#6b7280] hover:bg-[#f4f4f7] dark:text-slate-400 dark:hover:bg-slate-800'
           }
         >
           <MessageSquare className="h-4 w-4" />
@@ -292,8 +292,8 @@ const ProjectPage = () => {
           onClick={() => setActiveTab('notes')}
           className={
             activeTab === 'notes'
-              ? 'bg-[#4f46e5] text-white hover:bg-[#4338ca]'
-              : 'text-[#6b7280] hover:bg-[#f4f4f7]'
+              ? 'bg-blue-600 text-white hover:bg-blue-700'
+              : 'text-[#6b7280] hover:bg-[#f4f4f7] dark:text-slate-400 dark:hover:bg-slate-800'
           }
         >
           <FileText className="h-4 w-4" />
@@ -305,8 +305,8 @@ const ProjectPage = () => {
           onClick={() => setActiveTab('resources')}
           className={
             activeTab === 'resources'
-              ? 'bg-[#4f46e5] text-white hover:bg-[#4338ca]'
-              : 'text-[#6b7280] hover:bg-[#f4f4f7]'
+              ? 'bg-blue-600 text-white hover:bg-blue-700'
+              : 'text-[#6b7280] hover:bg-[#f4f4f7] dark:text-slate-400 dark:hover:bg-slate-800'
           }
         >
           <FolderGit2 className="h-4 w-4" />
@@ -318,8 +318,8 @@ const ProjectPage = () => {
           onClick={() => setActiveTab('webhook')}
           className={
             activeTab === 'webhook'
-              ? 'bg-[#4f46e5] text-white hover:bg-[#4338ca]'
-              : 'text-[#6b7280] hover:bg-[#f4f4f7]'
+              ? 'bg-blue-600 text-white hover:bg-blue-700'
+              : 'text-[#6b7280] hover:bg-[#f4f4f7] dark:text-slate-400 dark:hover:bg-slate-800'
           }
         >
           <GitBranch className="h-4 w-4" />
@@ -337,7 +337,7 @@ const ProjectPage = () => {
                 </CardTitle>
                 <Button
                   onClick={() => setDialogOpen(true)}
-                  className="bg-[#4f46e5] hover:bg-[#4338ca] w-full sm:w-auto"
+                  className="bg-blue-600 hover:bg-blue-700 w-full sm:w-auto"
                   size="sm"
                 >
                   <Plus className="h-4 w-4" />
@@ -364,8 +364,8 @@ const ProjectPage = () => {
                       onClick={() => setTypeFilter(t)}
                       className={
                         typeFilter === t
-                          ? 'bg-[#4f46e5] text-white hover:bg-[#4338ca] text-[11px]'
-                          : 'text-[#6b7280] hover:bg-[#f4f4f7] text-[11px]'
+                          ? 'bg-blue-600 text-white hover:bg-blue-700 text-[11px]'
+                          : 'text-[#6b7280] hover:bg-[#f4f4f7] text-[11px] dark:text-slate-400 dark:hover:bg-slate-800'
                       }
                     >
                       {t.replace('_', ' ')}
@@ -425,8 +425,8 @@ const ProjectPage = () => {
                                   onClick={() => handleReact(contribution._id, emoji)}
                                   className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs transition-all border ${
                                     reactedByMe
-                                      ? 'bg-indigo-50 border-indigo-300 text-indigo-700 font-semibold'
-                                      : 'bg-white border-[#e8e8ef] text-[#6b7280] hover:bg-[#f4f4f7]'
+                                      ? 'bg-blue-50 border-blue-300 text-blue-700 font-semibold dark:bg-blue-950/60 dark:border-blue-800 dark:text-blue-300'
+                                      : 'bg-white border-[#e8e8ef] text-[#6b7280] hover:bg-[#f4f4f7] dark:bg-slate-800 dark:border-slate-700 dark:text-slate-300'
                                   }`}
                                 >
                                   <span>{emoji}</span>

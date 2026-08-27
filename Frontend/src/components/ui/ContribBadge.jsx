@@ -1,9 +1,9 @@
 const typeStyles = {
-  commit: 'bg-[#ede9fe] text-[#4f46e5] border-[#c7d2fe]',
-  comment: 'bg-[#dcfce7] text-[#16a34a] border-[#bbf7d0]',
-  review: 'bg-[#fef3c7] text-[#d97706] border-[#fde68a]',
-  task_complete: 'bg-[#cffafe] text-[#0891b2] border-[#a5f3fc]',
-  file_upload: 'bg-[#f3e8ff] text-[#9333ea] border-[#e9d5ff]'
+  commit: 'bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950/60 dark:text-blue-300 dark:border-blue-800',
+  comment: 'bg-slate-100 text-slate-700 border-slate-200 dark:bg-slate-800 dark:text-slate-200 dark:border-slate-700',
+  review: 'bg-sky-50 text-sky-700 border-sky-200 dark:bg-sky-950/60 dark:text-sky-300 dark:border-sky-800',
+  task_complete: 'bg-blue-600 text-white border-blue-600 dark:bg-blue-600 dark:text-white',
+  file_upload: 'bg-slate-800 text-white border-slate-700 dark:bg-slate-900 dark:text-slate-100'
 }
 
 const typeLabels = {

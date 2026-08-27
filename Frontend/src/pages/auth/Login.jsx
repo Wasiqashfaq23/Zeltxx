@@ -6,17 +6,17 @@ import { Separator } from '@/components/ui/separator'
 
 const Login = () => {
   const { user, loading } = useAuth()
-  const googleAuthUrl = `${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/auth/google`
+  const googleAuthUrl = `${import.meta.env.VITE_API_URL || 'http://localhost:5001'}/api/auth/google`
 
   if (loading) return <Loader />
   if (user) return <Navigate to="/dashboard" replace />
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-[#f4f4f7] px-4 sm:px-6 py-8">
-      <Card className="w-full max-w-sm border-[#e8e8ef] bg-white shadow-sm">
+    <div className="flex min-h-screen items-center justify-center bg-[#f4f4f7] px-4 sm:px-6 py-8 dark:bg-zinc-950">
+      <Card className="w-full max-w-sm border-[#e8e8ef] bg-white shadow-sm dark:bg-zinc-900 dark:border-zinc-800">
         <CardContent className="p-5 sm:p-8">
           <div className="flex flex-col items-center">
-            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#4f46e5] text-xl font-bold text-white">
+            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-blue-600 text-xl font-bold text-white shadow-sm">
               Z
             </div>
             <h1 className="mt-4 text-2xl font-bold text-[#1a1a2e]">zeltxx</h1>

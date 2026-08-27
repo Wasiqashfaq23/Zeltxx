@@ -14,7 +14,7 @@ const UserAvatar = ({ user, size = 'md', className }) => {
   return (
     <Avatar title={user?.statusText ? `${user.name} (${user.statusText})` : user?.name} className={cn(sizeMap[size], className)}>
       <AvatarImage src={user?.avatar} alt={user?.name} />
-      <AvatarFallback className="bg-[#ede9fe] text-[#4f46e5]">
+      <AvatarFallback className="bg-blue-50 text-blue-600 font-semibold">
         {initials}
       </AvatarFallback>
     </Avatar>
@@ -27,7 +27,7 @@ export const MemberAvatarStack = ({ members = [] }) => {
       {members.slice(0, 3).map((m) => (
         <Avatar key={m.user._id || m.user} className="h-6 w-6 border-2 border-white">
           <AvatarImage src={m.user.avatar} />
-          <AvatarFallback className="bg-[#ede9fe] text-[8px] text-[#4f46e5]">
+          <AvatarFallback className="bg-blue-50 text-[8px] text-blue-600 font-semibold">
             {m.user.name?.charAt(0).toUpperCase() || '?'}
           </AvatarFallback>
         </Avatar>

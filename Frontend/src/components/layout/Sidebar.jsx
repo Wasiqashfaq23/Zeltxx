@@ -16,8 +16,8 @@ import { Button } from '@/components/ui/button'
 const navLinkClass = ({ isActive }) =>
   `flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors mx-2 ${
     isActive
-      ? 'bg-[#ede9fe] text-[#4f46e5]'
-      : 'text-[#6b7280] hover:bg-[#f4f4f7] hover:text-[#1a1a2e]'
+      ? 'bg-blue-50 text-blue-600 dark:bg-blue-950/60 dark:text-blue-400'
+      : 'text-[#6b7280] hover:bg-[#f4f4f7] hover:text-[#1a1a2e] dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-100'
   }`
 
 const Sidebar = () => {
