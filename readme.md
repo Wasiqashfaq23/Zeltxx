@@ -47,7 +47,7 @@ Zeltxx is a modern, full-stack real-time collaboration and project management Sa
 
 #### Backend (`Backend/.env`)
 ```env
-PORT=5000
+PORT=5001
 MONGO_URI=mongodb://localhost:27017/zeltxx
 JWT_SECRET=your_jwt_secret_key
 CLIENT_URL=http://localhost:5173
@@ -57,26 +57,42 @@ GOOGLE_CLIENT_SECRET=your_google_client_secret
 
 #### Frontend (`Frontend/.env`)
 ```env
-VITE_API_URL=http://localhost:5000
+VITE_API_URL=http://localhost:5001
 ```
 
-### 3. Running Locally
+### 3. Running & Seeding Locally
 
 #### Start Backend:
 ```bash
 cd Backend
-npm install
-npm run dev
+pnpm dev
+```
+
+#### Seed Local Database (Populates Projects, Tasks, 14-Day Metrics & Chat):
+```bash
+cd Backend
+pnpm run seed
 ```
 
 #### Start Frontend:
 ```bash
 cd Frontend
-npm install
-npm run dev
+pnpm dev
 ```
 
 Visit `http://localhost:5173` in your browser.
+
+---
+
+## 💼 Resume & Portfolio Highlights
+
+If you are showcasing **Zeltxx** on your resume or portfolio, here are tailored software engineering bullet points:
+
+- **Full-Stack Architecture**: Built a real-time developer productivity platform with **React 19**, **Node.js/Express 5**, **MongoDB**, and **Socket.io**.
+- **Real-Time WebSocket Sync**: Implemented low-latency bidirectional communication for team chat rooms, task updates, and multi-user room presence tracking.
+- **Weighted Analytics Algorithm**: Designed an automated gamified scoring system calculating developer impact (`commits: 4`, `reviews: 3`, `tasks: 2`, `comments: 1`) with 14-day velocity trends rendered via **Recharts**.
+- **OAuth 2.0 & Role-Based Security**: Secured REST APIs with **Passport.js Google OAuth 2.0**, **JWT HTTP-Only cookies**, and RBAC enforcing Admin vs. Collaborator capabilities.
+- **Accessible UI/UX Design System**: Engineered a WCAG 2.1 AA compliant dark-mode design system with **TailwindCSS 4** and custom token cascades.
 
 ---
 
