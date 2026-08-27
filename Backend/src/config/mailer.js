@@ -1,54 +1,79 @@
 import nodemailer from 'nodemailer'
 
-const SMTP_HOST = process.env.SMTP_HOST || 'smtp.gmail.com'
-const SMTP_PORT = parseInt(process.env.SMTP_PORT || '587', 10)
-const SMTP_USER = process.env.SMTP_USER || 'wasiqashfaq123@gmail.com'
-const SMTP_PASS = process.env.SMTP_PASS || ''
-const SMTP_FROM = process.env.SMTP_FROM || `"Zeltxx Platform" <${SMTP_USER}>`
+/**
+ * Creates Nodemailer transporter dynamically with strict timeouts
+ */
+const getTransporter = () => {
+  const host = process.env.SMTP_HOST || 'smtp.gmail.com'
+  const port = parseInt(process.env.SMTP_PORT || '465', 10)
+  const user = process.env.SMTP_USER || 'wasiqashfaq123@gmail.com'
+  const pass = process.env.SMTP_PASS || ''
 
-let transporter = null
+  if (!pass) return null
 
-if (SMTP_PASS) {
-  transporter = nodemailer.createTransport({
-    host: SMTP_HOST,
-    port: SMTP_PORT,
-    secure: SMTP_PORT === 465,
-    auth: {
-      user: SMTP_USER,
-      pass: SMTP_PASS
-    }
+  // Optimized for Gmail SSL / TLS
+  if (host.includes('gmail')) {
+    return nodemailer.createTransport({
+      host: 'smtp.gmail.com',
+      port: 465,
+      secure: true,
+      auth: { user, pass },
+      connectionTimeout: 8000,
+      greetingTimeout: 8000,
+      socketTimeout: 8000
+    })
+  }
+
+  return nodemailer.createTransport({
+    host,
+    port,
+    secure: port === 465,
+    auth: { user, pass },
+    connectionTimeout: 8000,
+    greetingTimeout: 8000,
+    socketTimeout: 8000
   })
-  console.log(`📧 Nodemailer SMTP Transporter configured for: ${SMTP_USER}`)
-} else {
-  console.log(`📧 SMTP_PASS not set. Email dispatches will log cleanly in console. (Set SMTP_PASS in Backend/.env to send real Gmail emails)`)
 }
 
 /**
  * Sends an email using Nodemailer or logs formatted email preview
  */
 export const sendEmail = async ({ to, subject, html, text }) => {
+  const user = process.env.SMTP_USER || 'wasiqashfaq123@gmail.com'
+  const pass = process.env.SMTP_PASS || ''
+  const from = process.env.SMTP_FROM || `"Zeltxx Platform" <${user}>`
+
+  // Check if dummy or missing password
+  if (!pass || pass.includes('dummy') || pass === 'your_app_password') {
+    console.log(`\n================= ✉️ EMAIL DISPATCH SIMULATOR =================`)
+    console.log(`FROM:    ${from}`)
+    console.log(`TO:      ${to}`)
+    console.log(`SUBJECT: ${subject}`)
+    console.log(`CONTENT: ${text || html?.replace(/<[^>]+>/g, '')}`)
+    console.log(`NOTE:    To send real emails, generate a 16-character Google App Password and put it in Backend/.env under SMTP_PASS`)
+    console.log(`=================================================================\n`)
+    return { success: true, simulated: true }
+  }
+
   try {
-    if (transporter && SMTP_PASS) {
-      const info = await transporter.sendMail({
-        from: SMTP_FROM,
-        to,
-        subject,
-        text,
-        html
-      })
-      console.log(`✉️ Email sent to ${to}: ${info.messageId}`)
-      return { success: true, messageId: info.messageId }
-    } else {
-      console.log(`\n================= ✉️ EMAIL DISPATCH SIMULATOR =================`)
-      console.log(`FROM:    ${SMTP_FROM}`)
-      console.log(`TO:      ${to}`)
-      console.log(`SUBJECT: ${subject}`)
-      console.log(`CONTENT: ${text || html?.replace(/<[^>]+>/g, '')}`)
-      console.log(`=================================================================\n`)
-      return { success: true, simulated: true }
-    }
+    const transporter = getTransporter()
+    if (!transporter) throw new Error('No transporter configured')
+
+    const info = await transporter.sendMail({
+      from,
+      to,
+      subject,
+      text,
+      html
+    })
+    console.log(`✅ Real email successfully sent to ${to}: ${info.messageId}`)
+    return { success: true, messageId: info.messageId }
   } catch (err) {
     console.error(`❌ Failed to send email to ${to}:`, err.message)
+    if (err.message.includes('EAUTH') || err.message.includes('535') || err.message.includes('Invalid login') || err.message.includes('Username and Password not accepted')) {
+      console.error(`💡 REASON: Gmail rejected the SMTP password because Google requires a 16-character App Password.`)
+      console.error(`👉 HOW TO FIX: Go to https://myaccount.google.com/apppasswords -> Select "Mail" -> Copy 16-character password -> Paste into SMTP_PASS in Backend/.env`)
+    }
     return { success: false, error: err.message }
   }
 }
@@ -57,8 +82,9 @@ export const sendEmail = async ({ to, subject, html, text }) => {
  * HTML Email Template Builder for Invites & Notifications
  */
 export const buildInviteEmailHtml = ({ projectName, inviteUrl, inviterName }) => {
+  const user = process.env.SMTP_USER || 'wasiqashfaq123@gmail.com'
   return `
-    <div style="font-family: Arial, sans-serif; background-color: #0f172a; color: #f8fafc; padding: 30px; borderRadius: 12px;">
+    <div style="font-family: Arial, sans-serif; background-color: #0f172a; color: #f8fafc; padding: 30px; border-radius: 12px;">
       <div style="max-width: 500px; margin: 0 auto; background: #1e293b; padding: 24px; border-radius: 12px; border: 1px solid #334155;">
         <h2 style="color: #60a5fa; margin-top: 0;">🚀 You've been invited to Zeltxx!</h2>
         <p style="color: #cbd5e1; font-size: 15px;">
@@ -70,7 +96,7 @@ export const buildInviteEmailHtml = ({ projectName, inviteUrl, inviterName }) =>
           </a>
         </div>
         <p style="color: #94a3b8; font-size: 12px; margin-bottom: 0;">
-          Sent via Zeltxx Collaboration Platform (${SMTP_USER})
+          Sent via Zeltxx Collaboration Platform (${user})
         </p>
       </div>
     </div>
