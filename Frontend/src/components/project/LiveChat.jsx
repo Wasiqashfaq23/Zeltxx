@@ -34,6 +34,9 @@ const LiveChat = ({ projectId }) => {
   useEffect(() => {
     if (!socket || !projectId) return
 
+    // Ensure socket joins project room
+    socket.emit('join_project', { projectId, user })
+
     const handleNewMessage = (msg) => {
       setMessages((prev) => {
         if (prev.some((m) => m._id === msg._id)) return prev
@@ -99,27 +102,27 @@ const LiveChat = ({ projectId }) => {
   }
 
   return (
-    <Card className="flex flex-col border-[#e8e8ef] bg-white shadow-sm h-[550px]">
-      <CardHeader className="flex flex-row items-center justify-between border-b border-[#e8e8ef] px-5 py-3 shrink-0">
+    <Card className="flex flex-col border-slate-800 bg-slate-900 shadow-sm h-[550px] text-slate-100">
+      <CardHeader className="flex flex-row items-center justify-between border-b border-slate-800 px-5 py-3 shrink-0">
         <div className="flex items-center gap-2">
-          <MessageSquare className="h-4 w-4 text-[#4f46e5]" />
-          <CardTitle className="text-base font-semibold text-[#1a1a2e]">
-            Project Live Chat
+          <MessageSquare className="h-4 w-4 text-blue-500" />
+          <CardTitle className="text-base font-semibold text-slate-100">
+            Project Team Chat
           </CardTitle>
         </div>
         {typingUsers.length > 0 && (
-          <span className="text-xs text-[#4f46e5] animate-pulse">
+          <span className="text-xs text-blue-400 animate-pulse">
             {typingUsers.map((u) => u.name).join(', ')} {typingUsers.length === 1 ? 'is' : 'are'} typing...
           </span>
         )}
       </CardHeader>
 
       <CardContent className="flex flex-1 flex-col p-0 overflow-hidden">
-        <div ref={scrollRef} className="flex-1 overflow-y-auto p-4 space-y-4 bg-[#fafafa]">
+        <div ref={scrollRef} className="flex-1 overflow-y-auto p-4 space-y-4 bg-slate-950/60">
           {loading ? (
-            <div className="py-12 text-center text-sm text-[#9ca3af]">Loading discussion...</div>
+            <div className="py-12 text-center text-sm text-slate-400">Loading discussion...</div>
           ) : messages.length === 0 ? (
-            <div className="py-12 text-center text-sm text-[#9ca3af]">
+            <div className="py-12 text-center text-sm text-slate-400">
               No messages yet. Start the conversation with your team!
             </div>
           ) : (
@@ -134,19 +137,19 @@ const LiveChat = ({ projectId }) => {
                   <div
                     className={`max-w-[75%] rounded-xl px-3.5 py-2.5 text-xs shadow-2xs ${
                       isMe
-                        ? 'bg-[#4f46e5] text-white rounded-tr-none'
-                        : 'bg-white text-[#1a1a2e] border border-[#e8e8ef] rounded-tl-none'
+                        ? 'bg-blue-600 text-white rounded-tr-none'
+                        : 'bg-slate-800 text-slate-100 border border-slate-700/60 rounded-tl-none'
                     }`}
                   >
                     {!isMe && (
-                      <p className="font-semibold mb-0.5 text-[11px] text-[#4f46e5]">
+                      <p className="font-semibold mb-0.5 text-[11px] text-blue-400">
                         {msg.user?.name}
                       </p>
                     )}
                     <p className="whitespace-pre-wrap break-words">{msg.message}</p>
                     <span
                       className={`block mt-1 text-[10px] text-right ${
-                        isMe ? 'text-indigo-200' : 'text-[#9ca3af]'
+                        isMe ? 'text-blue-200' : 'text-slate-400'
                       }`}
                     >
                       {new Date(msg.createdAt).toLocaleTimeString([], {
@@ -161,14 +164,14 @@ const LiveChat = ({ projectId }) => {
           )}
         </div>
 
-        <form onSubmit={handleSend} className="flex items-center gap-2 p-3 border-t border-[#e8e8ef] bg-white">
+        <form onSubmit={handleSend} className="flex items-center gap-2 p-3 border-t border-slate-800 bg-slate-900">
           <Input
             value={text}
             onChange={handleInputChange}
             placeholder="Type a message..."
-            className="flex-1 text-xs border-[#e8e8ef]"
+            className="flex-1 text-xs border-slate-700 bg-slate-950 text-slate-100"
           />
-          <Button type="submit" size="sm" className="bg-[#4f46e5] hover:bg-[#4338ca]">
+          <Button type="submit" size="sm" className="bg-blue-600 hover:bg-blue-700 text-white">
             <Send className="h-4 w-4" />
           </Button>
         </form>
