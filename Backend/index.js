@@ -18,6 +18,7 @@ import taskRoutes from './src/routes/task.js'
 import chatRoutes from './src/routes/chat.js'
 import resourceRoutes from './src/routes/resource.js'
 import webhookRoutes from './src/routes/webhook.js'
+import githubRoutes from './src/routes/github.js'
 
 const app=express();
 const httpServer = http.createServer(app)
@@ -43,6 +44,7 @@ app.use('/api/tasks', taskRoutes)
 app.use('/api/chats', chatRoutes)
 app.use('/api/resources', resourceRoutes)
 app.use('/api/webhooks', webhookRoutes)
+app.use('/api/github', githubRoutes)
 
 
 app.use(errorHandler)
