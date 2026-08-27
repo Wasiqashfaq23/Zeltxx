@@ -12,9 +12,9 @@ const Login = () => {
   if (user) return <Navigate to="/dashboard" replace />
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-[#f4f4f7] px-6">
+    <div className="flex min-h-screen items-center justify-center bg-[#f4f4f7] px-4 sm:px-6 py-8">
       <Card className="w-full max-w-sm border-[#e8e8ef] bg-white shadow-sm">
-        <CardContent className="p-8">
+        <CardContent className="p-5 sm:p-8">
           <div className="flex flex-col items-center">
             <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#4f46e5] text-xl font-bold text-white">
               Z

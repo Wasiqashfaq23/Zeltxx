@@ -1,7 +1,8 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Bell, LogOut, PanelLeftClose, PanelLeftOpen } from 'lucide-react'
+import { Bell, LogOut, PanelLeftClose, PanelLeftOpen, Sun, Moon, User as UserIcon } from 'lucide-react'
 import { useAuth } from '../../context/AuthContext'
+import { useSocket } from '../../context/SocketContext'
 import { useSidebar } from './Layout'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import {
@@ -16,11 +17,28 @@ import { getNotifications, markAsRead, markAllAsRead } from '../../api/notificat
 
 const Navbar = () => {
   const { user, logout } = useAuth()
-  const { sidebarState, toggleSidebar } = useSidebar()
+  const socket = useSocket()
+  const { sidebarState, toggleSidebar, mobileOpen, toggleMobileSidebar } = useSidebar()
   const navigate = useNavigate()
   const [notifications, setNotifications] = useState([])
   const [notifOpen, setNotifOpen] = useState(false)
   const [loadingNotifs, setLoadingNotifs] = useState(false)
+  const [theme, setTheme] = useState(() => localStorage.getItem('zeltxx_theme') || 'light')
+
+  useEffect(() => {
+    if (theme === 'dark') {
+      document.documentElement.classList.add('dark')
+      document.body.classList.add('dark')
+    } else {
+      document.documentElement.classList.remove('dark')
+      document.body.classList.remove('dark')
+    }
+    localStorage.setItem('zeltxx_theme', theme)
+  }, [theme])
+
+  const toggleTheme = () => {
+    setTheme((prev) => (prev === 'light' ? 'dark' : 'light'))
+  }
 
   const fetchNotifications = useCallback(() => {
     return getNotifications()
@@ -31,6 +49,23 @@ const Navbar = () => {
   useEffect(() => {
     if (user) fetchNotifications()
   }, [user, fetchNotifications])
+
+  useEffect(() => {
+    if (!socket || !user?._id) return
+    socket.emit('join_user', user._id)
+
+    const handleNewNotif = (notif) => {
+      setNotifications((prev) => {
+        if (prev.some((n) => n._id === notif._id)) return prev
+        return [notif, ...prev]
+      })
+    }
+
+    socket.on('notification', handleNewNotif)
+    return () => {
+      socket.off('notification', handleNewNotif)
+    }
+  }, [socket, user])
 
   const unreadCount = notifications.filter((n) => !n.read).length
 
@@ -70,15 +105,20 @@ const Navbar = () => {
 
   const sidebarExpanded = sidebarState === 'expanded'
 
+  const handleToggle = () => {
+    toggleMobileSidebar()
+    toggleSidebar()
+  }
+
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 flex h-14 items-center justify-between border-b border-[#e8e8ef] bg-white px-6">
-      <div className="flex items-center gap-3">
+    <header className="fixed top-0 left-0 right-0 z-50 flex h-14 items-center justify-between border-b border-[#e8e8ef] bg-white px-3 sm:px-6 dark:bg-slate-900 dark:border-slate-800">
+      <div className="flex items-center gap-2 sm:gap-3">
         <button
           type="button"
-          onClick={toggleSidebar}
+          onClick={handleToggle}
           aria-label={sidebarExpanded ? 'Collapse sidebar' : 'Expand sidebar'}
-          aria-expanded={sidebarExpanded}
-          className="flex h-8 w-8 items-center justify-center rounded-lg text-[#6b7280] transition-colors hover:bg-[#f4f4f7] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#4f46e5]"
+          aria-expanded={mobileOpen || sidebarExpanded}
+          className="flex h-8 w-8 items-center justify-center rounded-lg text-[#6b7280] transition-colors hover:bg-[#f4f4f7] dark:hover:bg-slate-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#4f46e5]"
         >
           {sidebarExpanded ? (
             <PanelLeftClose className="h-5 w-5" aria-hidden="true" />
@@ -88,16 +128,29 @@ const Navbar = () => {
         </button>
         <div className="flex items-center">
           <div
-            className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#4f46e5] text-sm font-bold text-white"
+            className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#4f46e5] text-sm font-bold text-white shadow-xs"
             aria-hidden="true"
           >
             Z
           </div>
-          <span className="ml-2 text-lg font-semibold text-[#1a1a2e]">zeltxx</span>
+          <span className="ml-2 text-base sm:text-lg font-semibold text-[#1a1a2e] dark:text-slate-100">zeltxx</span>
         </div>
       </div>
 
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-2 sm:gap-3">
+        <button
+          type="button"
+          onClick={toggleTheme}
+          aria-label="Toggle theme"
+          title={`Switch to ${theme === 'light' ? 'dark' : 'light'} mode`}
+          className="rounded-lg p-2 text-[#6b7280] transition-colors hover:bg-[#f4f4f7] dark:hover:bg-slate-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#4f46e5]"
+        >
+          {theme === 'light' ? (
+            <Moon className="h-5 w-5 text-[#6b7280]" aria-hidden="true" />
+          ) : (
+            <Sun className="h-5 w-5 text-amber-400" aria-hidden="true" />
+          )}
+        </button>
         <DropdownMenu open={notifOpen} onOpenChange={handleNotifOpenChange}>
           <DropdownMenuTrigger asChild>
             <button
@@ -120,7 +173,7 @@ const Navbar = () => {
               )}
             </button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-80">
+          <DropdownMenuContent align="end" className="w-72 sm:w-80 max-w-[calc(100vw-2rem)]">
             <div className="flex items-center justify-between px-2 py-1.5">
               <span className="px-1.5 py-1 text-xs font-medium text-[#6b7280]">
                 Notifications
@@ -206,6 +259,11 @@ const Navbar = () => {
               <p className="text-sm font-medium text-[#1a1a2e]">{user?.name}</p>
               <p className="text-xs text-[#9ca3af]">{user?.email}</p>
             </div>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={() => navigate('/profile')}>
+              <UserIcon className="h-4 w-4" aria-hidden="true" />
+              Account Settings
+            </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem
               onClick={logout}

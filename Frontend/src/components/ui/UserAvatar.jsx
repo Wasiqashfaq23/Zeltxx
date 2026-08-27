@@ -12,7 +12,7 @@ const UserAvatar = ({ user, size = 'md', className }) => {
   const initials = user?.name?.charAt(0).toUpperCase() || '?'
 
   return (
-    <Avatar className={cn(sizeMap[size], className)}>
+    <Avatar title={user?.statusText ? `${user.name} (${user.statusText})` : user?.name} className={cn(sizeMap[size], className)}>
       <AvatarImage src={user?.avatar} alt={user?.name} />
       <AvatarFallback className="bg-[#ede9fe] text-[#4f46e5]">
         {initials}

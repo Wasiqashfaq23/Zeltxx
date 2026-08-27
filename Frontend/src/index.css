@@ -26,10 +26,35 @@
   --radius: 0.625rem;
 }
 
+.dark {
+  --background: #0f172a;
+  --foreground: #f8fafc;
+  --card: #1e293b;
+  --card-foreground: #f8fafc;
+  --popover: #1e293b;
+  --popover-foreground: #f8fafc;
+  --primary: #6366f1;
+  --primary-foreground: #ffffff;
+  --secondary: #334155;
+  --secondary-foreground: #f8fafc;
+  --muted: #334155;
+  --muted-foreground: #94a3b8;
+  --accent: #312e81;
+  --accent-foreground: #818cf8;
+  --border: #334155;
+  --input: #334155;
+}
+
 body {
   font-family: 'Inter', sans-serif;
   background-color: #f4f4f7;
   color: #1a1a2e;
+  transition: background-color 0.2s, color 0.2s;
+}
+
+body.dark {
+  background-color: #0f172a;
+  color: #f8fafc;
 }
 
 input, select, textarea, button {

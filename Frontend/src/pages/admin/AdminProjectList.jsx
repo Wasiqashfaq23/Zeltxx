@@ -57,11 +57,11 @@ const AdminProjectList = () => {
 
   return (
     <Layout>
-      <div className="mb-6 flex items-center justify-between">
+      <div className="mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <h1 className="text-2xl font-bold text-[#1a1a2e]">Projects</h1>
         <Button
           onClick={() => setDialogOpen(true)}
-          className="bg-[#4f46e5] hover:bg-[#4338ca]"
+          className="bg-[#4f46e5] hover:bg-[#4338ca] w-full sm:w-auto"
         >
           <Plus className="h-4 w-4" />
           New Project
@@ -74,7 +74,7 @@ const AdminProjectList = () => {
           icon={<FolderKanban className="h-6 w-6" />}
         />
       ) : (
-        <div className="grid grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {adminProjects.map((project) => (
             <Card
               key={project._id}

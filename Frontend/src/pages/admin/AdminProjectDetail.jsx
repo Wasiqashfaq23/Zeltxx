@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Navigate, useNavigate, useParams } from 'react-router-dom'
-import { UserPlus, UserMinus } from 'lucide-react'
+import { UserPlus, UserMinus, Download, ArrowLeft } from 'lucide-react'
 import {
   getProjectById,
   updateProject,
@@ -142,8 +142,45 @@ const AdminProjectDetail = () => {
   const rankedSummary = [...summary].sort((a, b) => b.totalWeight - a.totalWeight)
   const combinedBreakdown = summary.reduce((acc, entry) => acc.concat(entry.breakdown || []), [])
 
+  const handleExportLeaderboardCSV = () => {
+    if (!rankedSummary.length) return
+    const headers = ['Rank', 'Member Name', 'Member Email', 'Contributions', 'Score', 'Share %']
+    const rows = rankedSummary.map((entry, index) => {
+      const share = totalWeight > 0 ? ((entry.totalWeight / totalWeight) * 100).toFixed(1) : 0
+      return [
+        index + 1,
+        `"${(entry.user?.name || '').replace(/"/g, '""')}"`,
+        `"${(entry.user?.email || '').replace(/"/g, '""')}"`,
+        entry.totalCount,
+        entry.totalWeight,
+        `${share}%`
+      ]
+    })
+    const csvStr = [headers.join(','), ...rows.map((r) => r.join(','))].join('\n')
+    const blob = new Blob([csvStr], { type: 'text/csv;charset=utf-8;' })
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.href = url
+    link.setAttribute('download', `${(project.name || 'project').replace(/\s+/g, '_')}_leaderboard.csv`)
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+    URL.revokeObjectURL(url)
+  }
+
   return (
     <Layout>
+      <div className="mb-4">
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => navigate('/admin/projects')}
+          className="text-[#6b7280] hover:text-[#1a1a2e] dark:text-slate-400 dark:hover:text-slate-100"
+        >
+          <ArrowLeft className="h-4 w-4" />
+          Back to Projects
+        </Button>
+      </div>
       {pageMessage && (
         <div className="mb-4 rounded-lg border border-[#e8e8ef] bg-[#ede9fe] px-4 py-3 text-sm text-[#4f46e5]">
           {pageMessage}
@@ -157,7 +194,7 @@ const AdminProjectDetail = () => {
         </div>
       )}
       <Card className="mb-6 border-[#e8e8ef] bg-white shadow-sm">
-        <CardContent className="flex items-start justify-between p-5">
+        <CardContent className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5">
           <div>
             <h1 className="text-2xl font-bold text-[#1a1a2e]">{project.name}</h1>
             <p className="mt-1 text-[#6b7280]">{project.description || 'No description'}</p>
@@ -169,52 +206,65 @@ const AdminProjectDetail = () => {
         </CardContent>
       </Card>
 
-      <div className="mb-6 grid grid-cols-2 gap-6">
+      <div className="mb-6 grid grid-cols-1 lg:grid-cols-2 gap-6">
         <Card className="border-[#e8e8ef] bg-white shadow-sm">
-          <CardHeader className="border-b border-[#e8e8ef] px-5 py-4">
+          <CardHeader className="flex flex-row items-center justify-between border-b border-[#e8e8ef] px-5 py-4">
             <CardTitle className="text-base font-semibold">Leaderboard</CardTitle>
+            {rankedSummary.length > 0 && (
+              <Button
+                variant="ghost"
+                size="xs"
+                onClick={handleExportLeaderboardCSV}
+                className="text-xs text-[#4f46e5] hover:text-[#4338ca]"
+              >
+                <Download className="h-3.5 w-3.5" />
+                Export
+              </Button>
+            )}
           </CardHeader>
           <CardContent className="p-0">
             {rankedSummary.length === 0 ? (
               <EmptyState message="No contributions yet" />
             ) : (
-              <Table>
-                <TableHeader>
-                  <TableRow className="border-[#e8e8ef] hover:bg-transparent">
-                    <TableHead className="text-[#6b7280]">Rank</TableHead>
-                    <TableHead className="text-[#6b7280]">Member</TableHead>
-                    <TableHead className="text-[#6b7280]">Contributions</TableHead>
-                    <TableHead className="text-[#6b7280]">Score</TableHead>
-                    <TableHead className="text-[#6b7280]">Share</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {rankedSummary.map((entry, index) => {
-                    const share =
-                      totalWeight > 0
-                        ? ((entry.totalWeight / totalWeight) * 100).toFixed(1)
-                        : 0
-                    return (
-                      <TableRow key={entry._id} className="border-[#f0f0f5]">
-                        <TableCell
-                          className={`font-bold ${index < 2 ? 'text-[#4f46e5]' : 'text-[#1a1a2e]'}`}
-                        >
-                          #{index + 1}
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex items-center gap-2">
-                            <UserAvatar user={entry.user} size="xs" />
-                            <span className="font-medium">{entry.user.name}</span>
-                          </div>
-                        </TableCell>
-                        <TableCell className="text-[#6b7280]">{entry.totalCount}</TableCell>
-                        <TableCell className="text-[#6b7280]">{entry.totalWeight}</TableCell>
-                        <TableCell className="text-[#6b7280]">{share}%</TableCell>
-                      </TableRow>
-                    )
-                  })}
-                </TableBody>
-              </Table>
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow className="border-[#e8e8ef] hover:bg-transparent">
+                      <TableHead className="text-[#6b7280]">Rank</TableHead>
+                      <TableHead className="text-[#6b7280]">Member</TableHead>
+                      <TableHead className="text-[#6b7280]">Contributions</TableHead>
+                      <TableHead className="text-[#6b7280]">Score</TableHead>
+                      <TableHead className="text-[#6b7280]">Share</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {rankedSummary.map((entry, index) => {
+                      const share =
+                        totalWeight > 0
+                          ? ((entry.totalWeight / totalWeight) * 100).toFixed(1)
+                          : 0
+                      return (
+                        <TableRow key={entry._id} className="border-[#f0f0f5]">
+                          <TableCell
+                            className={`font-bold ${index < 2 ? 'text-[#4f46e5]' : 'text-[#1a1a2e]'}`}
+                          >
+                            #{index + 1}
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex items-center gap-2">
+                              <UserAvatar user={entry.user} size="xs" />
+                              <span className="font-medium">{entry.user.name}</span>
+                            </div>
+                          </TableCell>
+                          <TableCell className="text-[#6b7280]">{entry.totalCount}</TableCell>
+                          <TableCell className="text-[#6b7280]">{entry.totalWeight}</TableCell>
+                          <TableCell className="text-[#6b7280]">{share}%</TableCell>
+                        </TableRow>
+                      )
+                    })}
+                  </TableBody>
+                </Table>
+              </div>
             )}
           </CardContent>
         </Card>
@@ -257,12 +307,12 @@ const AdminProjectDetail = () => {
             project.members.map((member) => (
               <div
                 key={member.user._id}
-                className="flex items-center gap-3 border-b border-[#f0f0f5] px-5 py-3 last:border-0"
+                className="flex flex-wrap sm:flex-nowrap items-center gap-3 border-b border-[#f0f0f5] px-4 sm:px-5 py-3 last:border-0"
               >
                 <UserAvatar user={member.user} size="sm" />
                 <div className="min-w-0 flex-1">
                   <p className="text-sm font-medium text-[#1a1a2e]">{member.user.name}</p>
-                  <p className="text-xs text-[#9ca3af]">{member.user.email}</p>
+                  <p className="text-xs text-[#9ca3af] truncate">{member.user.email}</p>
                 </div>
                 <Badge
                   variant="secondary"
@@ -278,7 +328,7 @@ const AdminProjectDetail = () => {
                   variant="ghost"
                   size="icon"
                   onClick={() => handleRemove(member.user._id)}
-                  className="hover:text-[#dc2626]"
+                  className="hover:text-[#dc2626] ml-auto sm:ml-0"
                   aria-label={`Remove ${member.user.name} from project`}
                 >
                   <UserMinus className="h-4 w-4" />

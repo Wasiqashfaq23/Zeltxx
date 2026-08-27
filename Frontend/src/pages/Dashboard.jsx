@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { Plus, FolderKanban } from 'lucide-react'
+import { Plus, FolderKanban, Search } from 'lucide-react'
 import { getProjects, createProject } from '../api/projects'
 import { useAuth } from '../context/AuthContext'
 import Layout from '../components/layout/Layout'
@@ -30,6 +30,8 @@ const Dashboard = () => {
   const [dialogOpen, setDialogOpen] = useState(false)
   const [name, setName] = useState('')
   const [description, setDescription] = useState('')
+  const [searchQuery, setSearchQuery] = useState('')
+  const [roleFilter, setRoleFilter] = useState('all')
 
   useEffect(() => {
     getProjects()
@@ -39,7 +41,7 @@ const Dashboard = () => {
   }, [])
 
   const getUserRole = (project) =>
-    project.members.find((m) => (m.user._id || m.user) === user._id)?.role
+    project.members.find((m) => (m.user._id || m.user) === user?._id)?.role
 
   const handleCreate = (e) => {
     e.preventDefault()
@@ -57,6 +59,15 @@ const Dashboard = () => {
   const collabCount = projects.filter((p) => getUserRole(p) === 'collaborator').length
   const totalMembers = projects.reduce((sum, p) => sum + p.members.length, 0)
 
+  const filteredProjects = projects.filter((project) => {
+    const role = getUserRole(project)
+    const matchesRole = roleFilter === 'all' || role === roleFilter
+    const matchesSearch =
+      project.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (project.description && project.description.toLowerCase().includes(searchQuery.toLowerCase()))
+    return matchesRole && matchesSearch
+  })
+
   if (loading) return <Loader />
 
   return (
@@ -66,33 +77,71 @@ const Dashboard = () => {
         <p className="mt-1 text-sm text-[#6b7280]">Welcome back, {user?.name}</p>
       </div>
 
-      <div className="mb-8 grid grid-cols-4 gap-4">
+      <div className="mb-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard label="Total Projects" value={projects.length} />
         <StatCard label="As Admin" value={adminCount} />
         <StatCard label="As Collaborator" value={collabCount} />
         <StatCard label="Total Members" value={totalMembers} />
       </div>
 
-      <div className="mb-4 flex items-center justify-between">
+      <div className="mb-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <h2 className="text-lg font-semibold text-[#1a1a2e]">My Projects</h2>
         <Button
           onClick={() => setDialogOpen(true)}
-          className="bg-[#4f46e5] hover:bg-[#4338ca]"
+          className="bg-[#4f46e5] hover:bg-[#4338ca] w-full sm:w-auto"
         >
           <Plus className="h-4 w-4" />
           New Project
         </Button>
       </div>
 
-      {projects.length === 0 ? (
+      <div className="mb-6 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+        <div className="relative flex-1 max-w-md">
+          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#9ca3af]" />
+          <Input
+            type="text"
+            placeholder="Search projects by name or description..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pl-9 bg-white border-[#e8e8ef]"
+          />
+        </div>
+        <div className="flex items-center gap-1.5 self-start sm:self-auto overflow-x-auto pb-1 sm:pb-0">
+          {['all', 'admin', 'collaborator'].map((r) => (
+            <Button
+              key={r}
+              variant={roleFilter === r ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => setRoleFilter(r)}
+              className={
+                roleFilter === r
+                  ? 'bg-[#4f46e5] hover:bg-[#4338ca] text-white'
+                  : 'border-[#e8e8ef] text-[#6b7280] bg-white'
+              }
+            >
+              {r === 'all' ? 'All' : r === 'admin' ? 'As Admin' : 'As Collaborator'}
+            </Button>
+          ))}
+        </div>
+      </div>
+
+      {filteredProjects.length === 0 ? (
         <EmptyState
-          message="No projects yet. Create your first project to get started."
+          message={
+            projects.length === 0
+              ? 'No projects yet. Create your first project to get started.'
+              : 'No projects match your filter or search query.'
+          }
           icon={<FolderKanban className="h-6 w-6" />}
-          action={{ label: 'Create Project', onClick: () => setDialogOpen(true) }}
+          action={
+            projects.length === 0
+              ? { label: 'Create Project', onClick: () => setDialogOpen(true) }
+              : undefined
+          }
         />
       ) : (
-        <div className="grid grid-cols-3 gap-4">
-          {projects.map((project) => {
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {filteredProjects.map((project) => {
             const role = getUserRole(project)
             return (
               <Card

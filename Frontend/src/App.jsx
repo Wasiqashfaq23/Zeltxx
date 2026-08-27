@@ -7,6 +7,7 @@ import AdminProjectList from './pages/admin/AdminProjectList'
 import AdminProjectDetail from './pages/admin/AdminProjectDetail'
 import UserManagement from './pages/admin/UserManagement'
 import MyStats from './pages/MyStats'
+import Profile from './pages/Profile'
 import Unauthorized from './pages/Unauthorized'
 import NotFound from './pages/NotFound'
 
@@ -24,6 +25,7 @@ const App = () => {
         <Route path="/admin/projects/:id" element={<AdminProjectDetail />} />
         <Route path="/admin/users" element={<UserManagement />} />
         <Route path="/stats" element={<MyStats />} />
+        <Route path="/profile" element={<Profile />} />
       </Route>
 
       <Route path="/" element={<Navigate to="/login" replace />} />

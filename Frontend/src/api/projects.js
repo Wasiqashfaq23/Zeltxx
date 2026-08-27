@@ -13,3 +13,5 @@ export const deleteProject = (id) => api.delete(`/api/projects/${id}`)
 export const inviteMember = (id, data) => api.post(`/api/projects/${id}/invite`, data)
 
 export const removeMember = (id, userId) => api.delete(`/api/projects/${id}/remove/${userId}`)
+
+export const updateProjectNotes = (id, data) => api.patch(`/api/projects/${id}/notes`, data)
