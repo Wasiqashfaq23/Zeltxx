@@ -14,6 +14,7 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { Button } from '@/components/ui/button'
 import { getNotifications, markAsRead, markAllAsRead } from '../../api/notifications'
+import ZeltxxLogo from '../ui/ZeltxxLogo'
 
 const Navbar = () => {
   const { user, logout } = useAuth()
@@ -126,15 +127,7 @@ const Navbar = () => {
             <PanelLeftOpen className="h-5 w-5" aria-hidden="true" />
           )}
         </button>
-        <div className="flex items-center">
-          <div
-            className="flex h-7 w-7 items-center justify-center rounded-lg bg-blue-600 text-sm font-bold text-white shadow-xs"
-            aria-hidden="true"
-          >
-            Z
-          </div>
-          <span className="ml-2 text-base sm:text-lg font-bold text-white tracking-tight">zeltxx</span>
-        </div>
+        <ZeltxxLogo iconSize="h-7 w-7" textSize="text-lg" />
       </div>
 
       <div className="flex items-center gap-2 sm:gap-3">

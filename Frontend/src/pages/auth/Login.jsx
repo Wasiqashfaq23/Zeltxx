@@ -4,6 +4,8 @@ import Loader from '../../components/ui/Loader'
 import { Card, CardContent } from '@/components/ui/card'
 import { Separator } from '@/components/ui/separator'
 
+import ZeltxxLogo, { LogoIcon } from '../../components/ui/ZeltxxLogo'
+
 const Login = () => {
   const { user, loading } = useAuth()
   const googleAuthUrl = `${import.meta.env.VITE_API_URL || 'http://localhost:5001'}/api/auth/google`
@@ -12,15 +14,13 @@ const Login = () => {
   if (user) return <Navigate to="/dashboard" replace />
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-[#f4f4f7] px-4 sm:px-6 py-8 dark:bg-zinc-950">
-      <Card className="w-full max-w-sm border-[#e8e8ef] bg-white shadow-sm dark:bg-zinc-900 dark:border-zinc-800">
+    <div className="flex min-h-screen items-center justify-center bg-[#f4f4f7] px-4 sm:px-6 py-8 dark:bg-slate-950">
+      <Card className="w-full max-w-sm border-slate-200 bg-white shadow-sm dark:bg-slate-900 dark:border-slate-800">
         <CardContent className="p-5 sm:p-8">
           <div className="flex flex-col items-center">
-            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-blue-600 text-xl font-bold text-white shadow-sm">
-              Z
-            </div>
-            <h1 className="mt-4 text-2xl font-bold text-[#1a1a2e]">zeltxx</h1>
-            <p className="mt-2 text-center text-sm text-[#6b7280]">
+            <LogoIcon className="h-14 w-14" />
+            <h1 className="mt-3 text-2xl font-bold text-slate-900 dark:text-slate-100 tracking-tight">zeltxx</h1>
+            <p className="mt-2 text-center text-sm text-slate-500 dark:text-slate-400">
               The project management platform that doesn&apos;t slow you down
             </p>
           </div>
