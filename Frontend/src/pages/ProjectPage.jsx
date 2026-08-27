@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { Plus, Activity, Search, LayoutKanban, MessageSquare, FileText, FolderGit2, Calendar as CalendarIcon, GitBranch, FileDown, ArrowLeft } from 'lucide-react'
+import { Plus, Activity, Search, Columns3, MessageSquare, FileText, FolderGit2, Calendar as CalendarIcon, GitBranch, FileDown, ArrowLeft } from 'lucide-react'
 import { getProjectById } from '../api/projects'
 import { getContributions, logContribution, toggleReaction } from '../api/contributions'
 import { useAuth } from '../context/AuthContext'
@@ -257,7 +257,7 @@ const ProjectPage = () => {
               : 'text-[#6b7280] hover:bg-[#f4f4f7]'
           }
         >
-          <LayoutKanban className="h-4 w-4" />
+          <Columns3 className="h-4 w-4" />
           Task Board
         </Button>
         <Button
