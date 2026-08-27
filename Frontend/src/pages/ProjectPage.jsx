@@ -407,7 +407,11 @@ const ProjectPage = () => {
                             </span>
                           </div>
                           {contribution.meta && (
-                            <p className="text-sm text-[#6b7280] break-words">{contribution.meta}</p>
+                            <p className="text-sm text-slate-300 break-words">
+                              {typeof contribution.meta === 'object'
+                                ? (contribution.meta.commitMsg ? `[${contribution.meta.sha || 'commit'}] ${contribution.meta.commitMsg}` : JSON.stringify(contribution.meta))
+                                : contribution.meta}
+                            </p>
                           )}
 
                           {/* Live Reaction Bar */}

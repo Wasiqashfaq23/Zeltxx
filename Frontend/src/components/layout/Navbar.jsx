@@ -132,30 +132,27 @@ const Navbar = () => {
 
       <div className="flex items-center gap-2 sm:gap-3">
         <DropdownMenu open={notifOpen} onOpenChange={handleNotifOpenChange}>
-          <DropdownMenuTrigger asChild>
-            <button
-              type="button"
-              aria-label={
-                unreadCount > 0
-                  ? `Notifications, ${unreadCount} unread`
-                  : 'Notifications'
-              }
-              className="relative rounded-lg p-2 text-slate-300 transition-colors hover:bg-slate-800 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
-            >
-              <Bell className="h-5 w-5 text-slate-300" aria-hidden="true" />
-              {unreadCount > 0 && (
-                <span
-                  className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-600 px-1 text-[10px] font-semibold text-white"
-                  aria-hidden="true"
-                >
-                  {unreadCount > 9 ? '9+' : unreadCount}
-                </span>
-              )}
-            </button>
+          <DropdownMenuTrigger
+            aria-label={
+              unreadCount > 0
+                ? `Notifications, ${unreadCount} unread`
+                : 'Notifications'
+            }
+            className="relative rounded-lg p-2 text-slate-300 transition-colors hover:bg-slate-800 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 cursor-pointer"
+          >
+            <Bell className="h-5 w-5 text-slate-300" aria-hidden="true" />
+            {unreadCount > 0 && (
+              <span
+                className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-600 px-1 text-[10px] font-semibold text-white"
+                aria-hidden="true"
+              >
+                {unreadCount > 9 ? '9+' : unreadCount}
+              </span>
+            )}
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-72 sm:w-80 max-w-[calc(100vw-2rem)]">
             <div className="flex items-center justify-between px-2 py-1.5">
-              <span className="px-1.5 py-1 text-xs font-medium text-[#6b7280]">
+              <span className="px-1.5 py-1 text-xs font-medium text-slate-400">
                 Notifications
               </span>
               {unreadCount > 0 && (
@@ -163,52 +160,33 @@ const Navbar = () => {
                   variant="ghost"
                   size="xs"
                   onClick={handleMarkAllRead}
-                  className="h-auto px-2 py-1 text-xs text-blue-600 hover:text-blue-700"
+                  className="h-auto px-2 py-1 text-xs text-blue-400 hover:text-blue-300"
                 >
                   Mark all read
                 </Button>
               )}
             </div>
-            <DropdownMenuSeparator />
-            {loadingNotifs ? (
-              <div className="px-2 py-6 text-center text-sm text-[#9ca3af]">
-                Loading…
-              </div>
-            ) : notifications.length === 0 ? (
-              <div className="px-2 py-6 text-center text-sm text-[#9ca3af]">
-                No notifications yet
+            {notifications.length === 0 ? (
+              <div className="px-3 py-4 text-center text-xs text-slate-400">
+                No notifications
               </div>
             ) : (
-              <div className="max-h-80 overflow-y-auto">
+              <div className="max-h-64 overflow-y-auto">
                 {notifications.map((n) => (
                   <DropdownMenuItem
                     key={n._id}
-                    className={`flex cursor-pointer flex-col items-start gap-0.5 py-2 ${
-                      !n.read ? 'bg-blue-50/50 dark:bg-blue-950/40' : ''
-                    }`}
                     onClick={() => handleNotificationClick(n)}
+                    className={`flex flex-col items-start gap-0.5 px-3 py-2 text-xs cursor-pointer ${
+                      !n.read ? 'bg-slate-800/80 font-medium' : ''
+                    }`}
                   >
-                    <div className="flex w-full items-start gap-2">
-                      {!n.read && (
-                        <span
-                          className="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-blue-600"
-                          aria-hidden="true"
-                        />
-                      )}
-                      <div className={!n.read ? '' : 'pl-4'}>
-                        <p className="text-sm text-[#1a1a2e] dark:text-slate-100">
-                          {typeof n.message === 'string' ? n.message : ''}
-                        </p>
-                        <p className="text-xs text-[#9ca3af]">
-                          {(() => {
-                            const date = new Date(n.createdAt)
-                            return Number.isNaN(date.getTime())
-                              ? ''
-                              : date.toLocaleString()
-                          })()}
-                        </p>
-                      </div>
-                    </div>
+                    <span className="text-slate-200">{n.message}</span>
+                    <span className="text-[10px] text-slate-400">
+                      {new Date(n.createdAt).toLocaleTimeString([], {
+                        hour: '2-digit',
+                        minute: '2-digit'
+                      })}
+                    </span>
                   </DropdownMenuItem>
                 ))}
               </div>
@@ -217,22 +195,19 @@ const Navbar = () => {
         </DropdownMenu>
 
         <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <button
-              type="button"
-              aria-label="Account menu"
-              className="flex items-center gap-2 rounded-lg p-1 transition-colors hover:bg-slate-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
-            >
-              <Avatar className="h-8 w-8">
-                <AvatarImage src={user?.avatar} alt="" />
-                <AvatarFallback className="bg-blue-600 text-xs font-bold text-white">
-                  {user?.name?.charAt(0).toUpperCase() || '?'}
-                </AvatarFallback>
-              </Avatar>
-              <span className="hidden text-sm font-medium text-slate-200 sm:inline">
-                {user?.name}
-              </span>
-            </button>
+          <DropdownMenuTrigger
+            aria-label="Account menu"
+            className="flex items-center gap-2 rounded-lg p-1 transition-colors hover:bg-slate-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 cursor-pointer"
+          >
+            <Avatar className="h-8 w-8">
+              <AvatarImage src={user?.avatar} alt="" />
+              <AvatarFallback className="bg-blue-600 text-xs font-bold text-white">
+                {user?.name?.charAt(0).toUpperCase() || '?'}
+              </AvatarFallback>
+            </Avatar>
+            <span className="hidden text-sm font-medium text-slate-200 sm:inline">
+              {user?.name}
+            </span>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-48">
             <div className="font-normal">
