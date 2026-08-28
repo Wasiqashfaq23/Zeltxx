@@ -8,7 +8,12 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url))
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '')
 
+  const backendUrl = env.BACKEND_URL || env.VITE_BACKEND_URL || env.VITE_API_URL || 'http://localhost:5001'
+
   return {
+    define: {
+      'import.meta.env.BACKEND_URL': JSON.stringify(backendUrl)
+    },
     plugins: [react()],
     resolve: {
       alias: {
@@ -19,7 +24,7 @@ export default defineConfig(({ mode }) => {
     server: {
       proxy: {
         '/api': {
-          target: env.VITE_API_URL || 'http://localhost:5000',
+          target: backendUrl,
           changeOrigin: true,
           credentials: true
         }

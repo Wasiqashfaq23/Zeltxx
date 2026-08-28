@@ -1,10 +1,5 @@
-import axios from 'axios'
+import api from './axiosInstance'
 
-const API = axios.create({
-  baseURL: `${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/resources`,
-  withCredentials: true
-})
-
-export const getResources = (projectId) => API.get(`/project/${projectId}`)
-export const createResource = (projectId, data) => API.post(`/project/${projectId}`, data)
-export const deleteResource = (id) => API.delete(`/${id}`)
+export const getResources = (projectId) => api.get(`/api/resources/project/${projectId}`)
+export const createResource = (projectId, data) => api.post(`/api/resources/project/${projectId}`, data)
+export const deleteResource = (id) => api.delete(`/api/resources/${id}`)

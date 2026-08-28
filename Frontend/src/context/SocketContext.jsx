@@ -14,7 +14,13 @@ export const SocketProvider = ({ children }) => {
       return
     }
 
-    const s = io(import.meta.env.VITE_API_URL || 'http://localhost:5001', {
+    const rawUrl =
+      import.meta.env.BACKEND_URL ||
+      import.meta.env.VITE_BACKEND_URL ||
+      import.meta.env.VITE_API_URL ||
+      'http://localhost:5001'
+    const backendUrl = rawUrl.replace(/\/$/, '')
+    const s = io(backendUrl, {
       withCredentials: true
     })
 
