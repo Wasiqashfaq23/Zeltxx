@@ -4,6 +4,7 @@
   "description": "Zeltxx collaboration platform API (Express + Mongoose + Socket.IO)",
   "main": "index.js",
   "type": "module",
+  "packageManager": "pnpm@11.11.0",
   "scripts": {
     "dev": "nodemon index.js",
     "start": "node index.js",

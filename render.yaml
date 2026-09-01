@@ -29,6 +29,10 @@ services:
         value: smtp.gmail.com
       - key: SMTP_PORT
         value: "465"
+      - key: CLIENT_URL
+        value: https://zeltxx.vercel.app
+      - key: CORS_ORIGINS
+        value: https://zeltxx.vercel.app
       # From here on, fill values in Render dashboard after creation.
       - key: MONGO_URI
         sync: false
@@ -39,10 +43,6 @@ services:
       - key: GOOGLE_CLIENT_SECRET
         sync: false
       - key: GOOGLE_CALLBACK_URL
-        sync: false
-      - key: CLIENT_URL
-        sync: false
-      - key: CORS_ORIGINS
         sync: false
       - key: SMTP_USER
         sync: false
