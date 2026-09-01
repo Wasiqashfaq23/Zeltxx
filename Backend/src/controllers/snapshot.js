@@ -1,5 +1,6 @@
 import Snapshot from "../models/snapshot.js"
 import Project from "../models/project.js"
+import { handleControllerError } from '../middleware/errorHandler.js'
 
 export const getSnapshots = async (req, res) => {
     try {
@@ -18,7 +19,7 @@ export const getSnapshots = async (req, res) => {
         const snapshots = await Snapshot.find({ project: projectId }).populate('user', 'name email avatar').sort({ date: -1 })
         res.status(200).json(snapshots)
     } catch (err) {
-        res.status(500).json({ message: err.message })
+        handleControllerError(res, err)
     }
 }
 
@@ -35,6 +36,12 @@ export const getSnapshotsByRange = async (req, res) => {
 
         const fromDate = from ? new Date(from) : new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)
         const toDate = to ? new Date(to) : new Date()
+        if (isNaN(fromDate.getTime()) || isNaN(toDate.getTime())) {
+            return res.status(400).json({ message: 'Invalid date range' })
+        }
+        if (fromDate > toDate) {
+            return res.status(400).json({ message: 'from must be before to' })
+        }
         toDate.setHours(23, 59, 59, 999)
 
         const snapshots = await Snapshot.find({
@@ -47,6 +54,6 @@ export const getSnapshotsByRange = async (req, res) => {
 
         res.status(200).json(snapshots)
     } catch(err) {
-        res.status(500).json({ message: err.message })
+        handleControllerError(res, err)
     }
 }

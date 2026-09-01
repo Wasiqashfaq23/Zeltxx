@@ -1,29 +1,29 @@
-import mongoose from 'mongoose'
+﻿import mongoose from 'mongoose'
 import dotenv from 'dotenv'
 import path from 'path'
 import { fileURLToPath } from 'url'
-import Project from './src/models/project.js'
-import Contribution from './src/models/contribution.js'
-import User from './src/models/user.js'
-import Snapshot from './src/models/snapshot.js'
+import Project from '../src/models/project.js'
+import Contribution from '../src/models/contribution.js'
+import User from '../src/models/user.js'
+import SNAPSHOT from '../src/models/SNAPSHOT.js'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 
-dotenv.config({ path: path.join(__dirname, '.env') })
+dotenv.config({ path: path.join(__dirname, '../.env') })
 
 const MONGO_URI = process.env.MONGO_URI || 'mongodb://localhost:27017/zeltxx'
 
 async function repairCommits() {
   try {
-    console.log('🔌 Connecting to MongoDB...')
+    console.log('ðŸ”Œ Connecting to MongoDB...')
     await mongoose.connect(MONGO_URI)
-    console.log('✅ Connected to MongoDB.')
+    console.log('âœ… Connected to MongoDB.')
 
     const projects = await Project.find({}).populate('members.user', 'name email avatar')
     const allUsers = await User.find({})
 
-    console.log(`🔍 Auditing commits across ${projects.length} project(s)...`)
+    console.log(`ðŸ” Auditing commits across ${projects.length} project(s)...`)
 
     let repairedCount = 0
 
@@ -65,18 +65,18 @@ async function repairCommits() {
           contrib.user = correctUserId
           await contrib.save()
           repairedCount++
-          console.log(`🔧 Repaired commit [${meta.sha || contrib._id}]: ${meta.authorName || 'Developer'} (${meta.authorEmail || 'N/A'}) -> user: ${correctUserIdStr || 'null (External Committer)'}`)
+          console.log(`ðŸ”§ Repaired commit [${meta.sha || contrib._id}]: ${meta.authorName || 'Developer'} (${meta.authorEmail || 'N/A'}) -> user: ${correctUserIdStr || 'null (External Committer)'}`)
         }
       }
 
-      // Re-calculate Snapshots for accuracy
-      await Snapshot.deleteMany({ project: project._id })
+      // Re-calculate SNAPSHOTs for accuracy
+      await SNAPSHOT.deleteMany({ project: project._id })
       const allContribs = await Contribution.find({ project: project._id })
 
       for (const c of allContribs) {
         if (c.user) {
           const dateStr = new Date(c.createdAt).toISOString().split('T')[0]
-          await Snapshot.findOneAndUpdate(
+          await SNAPSHOT.findOneAndUpdate(
             { project: project._id, user: c.user, date: new Date(dateStr) },
             {
               $inc: { totalCount: 1, totalWeight: c.weight || 1 },
@@ -88,10 +88,10 @@ async function repairCommits() {
       }
     }
 
-    console.log(`🎉 Success! Repaired ${repairedCount} commit contribution document(s) in MongoDB.`)
+    console.log(`ðŸŽ‰ Success! Repaired ${repairedCount} commit contribution document(s) in MongoDB.`)
     process.exit(0)
   } catch (err) {
-    console.error('❌ Error during commit repair:', err)
+    console.error('âŒ Error during commit repair:', err)
     process.exit(1)
   }
 }

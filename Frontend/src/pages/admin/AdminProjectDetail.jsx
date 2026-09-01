@@ -1,14 +1,16 @@
 import { useEffect, useState } from 'react'
 import { Navigate, useNavigate, useParams } from 'react-router-dom'
-import { UserPlus, UserMinus, Download, ArrowLeft } from 'lucide-react'
+import { UserPlus, UserMinus, Download, ArrowLeft, KeyRound, Copy, Loader2 } from 'lucide-react'
 import {
   getProjectById,
   updateProject,
   deleteProject,
   inviteMember,
-  removeMember
+  removeMember,
+  generateWebhookSecret,
+  updateWebhookEvents
 } from '../../api/projects'
-import { getProjectSummary } from '../../api/contributions'
+import { getProjectSummary, getProjectStreaks } from '../../api/contributions'
 import { getSnapshotsByRange } from '../../api/snapshots'
 import { useAuth } from '../../context/AuthContext'
 import Layout from '../../components/layout/Layout'
@@ -54,6 +56,8 @@ const AdminProjectDetail = () => {
   const { user } = useAuth()
   const [project, setProject] = useState(null)
   const [summary, setSummary] = useState([])
+  const [summaryRange, setSummaryRange] = useState('all')
+  const [streaks, setStreaks] = useState([])
   const [snapshots, setSnapshots] = useState([])
   const [loading, setLoading] = useState(true)
   const [name, setName] = useState('')
@@ -67,6 +71,33 @@ const AdminProjectDetail = () => {
   const [inviteOpen, setInviteOpen] = useState(false)
   const [memberToRemove, setMemberToRemove] = useState(null)
   const [removeDialogOpen, setRemoveDialogOpen] = useState(false)
+  const [webhookSecret, setWebhookSecret] = useState('')
+  const [webhookMsg, setWebhookMsg] = useState('')
+  const [webhookEvents, setWebhookEvents] = useState(['push', 'pr', 'issues', 'review'])
+  const [generatingSecret, setGeneratingSecret] = useState(false)
+
+  const WEBHOOK_EVENT_OPTIONS = [
+    { id: 'push', label: 'Push / Commits' },
+    { id: 'pr', label: 'Pull Requests' },
+    { id: 'issues', label: 'Issues' },
+    { id: 'review', label: 'Reviews' }
+  ]
+
+  const handleToggleWebhookEvent = (id, disabled) => {
+    if (disabled) return
+    const next = webhookEvents.includes(id)
+      ? webhookEvents.filter((e) => e !== id)
+      : [...webhookEvents, id]
+    setWebhookEvents(next)
+    updateWebhookEvents(id, { events: next })
+      .then(() => {
+        setPageMessage('Webhook event tracking updated.')
+      })
+      .catch((err) => {
+        setWebhookEvents(webhookEvents)
+        alert(err.response?.data?.message || 'Failed to update webhook events')
+      })
+  }
 
   const handlePromptRemove = (memberUser) => {
     setMemberToRemove(memberUser)
@@ -88,17 +119,27 @@ const AdminProjectDetail = () => {
   useEffect(() => {
     Promise.all([
       getProjectById(id),
-      getProjectSummary(id),
+      getProjectSummary(id, 'all'),
+      getProjectStreaks(id),
       getSnapshotsByRange(id, daysAgo(30), new Date().toISOString().split('T')[0])
     ])
-      .then(([projectRes, summaryRes, snapshotsRes]) => {
+      .then(([projectRes, summaryRes, streaksRes, snapshotsRes]) => {
         setProject(projectRes.data)
+        setWebhookEvents(projectRes.data?.webhookEvents?.length ? projectRes.data.webhookEvents : ['push', 'pr', 'issues', 'review'])
         setSummary(summaryRes.data)
+        setStreaks(streaksRes.data)
         setSnapshots(snapshotsRes.data)
       })
       .catch((err) => console.error(err))
       .finally(() => setLoading(false))
   }, [id])
+
+  useEffect(() => {
+    if (summaryRange === 'all') return
+    getProjectSummary(id, summaryRange)
+      .then((res) => setSummary(res.data))
+      .catch((err) => console.error(err))
+  }, [id, summaryRange])
 
   useEffect(() => {
     if (project) {
@@ -124,10 +165,22 @@ const AdminProjectDetail = () => {
       .catch((err) => console.error(err))
   }
 
-  const handleRemove = (userId) => {
-    removeMember(id, userId)
-      .then(() => refreshProject())
-      .catch((err) => console.error(err))
+  const handleGenerateWebhookSecret = () => {
+    setWebhookMsg('')
+    setGeneratingSecret(true)
+    generateWebhookSecret(id)
+      .then((res) => {
+        setWebhookSecret(res.data?.webhookSecret || '')
+        setWebhookMsg('New secret generated. Copy it now — it is shown only once.')
+      })
+      .catch((err) => setWebhookMsg(err.response?.data?.message || 'Failed to generate secret'))
+      .finally(() => setGeneratingSecret(false))
+  }
+
+  const handleCopyWebhookSecret = () => {
+    if (!webhookSecret) return
+    navigator.clipboard.writeText(webhookSecret)
+    setWebhookMsg('Secret copied to clipboard.')
   }
 
   const handleInvite = async () => {
@@ -170,6 +223,10 @@ const AdminProjectDetail = () => {
   const totalWeight = summary.reduce((sum, entry) => sum + entry.totalWeight, 0)
   const rankedSummary = [...summary].sort((a, b) => b.totalWeight - a.totalWeight)
   const combinedBreakdown = summary.reduce((acc, entry) => acc.concat(entry.breakdown || []), [])
+  const streakMap = streaks.reduce((acc, s) => {
+    if (s.user && s.user._id) acc[String(s.user._id)] = s
+    return acc
+  }, {})
 
   const handleExportLeaderboardCSV = () => {
     if (!rankedSummary.length) return
@@ -240,8 +297,26 @@ const AdminProjectDetail = () => {
 
       <div className="mb-6 grid grid-cols-1 lg:grid-cols-2 gap-6">
         <Card className="border-slate-200 bg-white shadow-xs dark:border-slate-800 dark:bg-slate-900">
-          <CardHeader className="flex flex-row items-center justify-between border-b border-slate-200 px-5 py-4 dark:border-slate-800">
-            <CardTitle className="text-base font-semibold text-slate-900 dark:text-slate-100">Leaderboard</CardTitle>
+          <CardHeader className="flex flex-row items-center justify-between gap-3 border-b border-slate-200 px-5 py-4 dark:border-slate-800">
+            <div className="flex flex-wrap items-center gap-3">
+              <CardTitle className="text-base font-semibold text-slate-900 dark:text-slate-100">Leaderboard</CardTitle>
+              <div className="flex items-center rounded-lg border border-slate-200 p-0.5 dark:border-slate-800">
+                {[['30', 'Month'], ['7', 'Week'], ['all', 'All-time']].map(([val, label]) => (
+                  <button
+                    key={val}
+                    type="button"
+                    onClick={() => setSummaryRange(val)}
+                    className={`rounded-md px-2.5 py-1 text-xs font-medium transition-colors ${
+                      summaryRange === val
+                        ? 'bg-blue-600 text-white'
+                        : 'text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200'
+                    }`}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+            </div>
             {rankedSummary.length > 0 && (
               <Button
                 variant="ghost"
@@ -267,6 +342,7 @@ const AdminProjectDetail = () => {
                       <TableHead className="text-slate-500 dark:text-slate-400">Contributions</TableHead>
                       <TableHead className="text-slate-500 dark:text-slate-400">Score</TableHead>
                       <TableHead className="text-slate-500 dark:text-slate-400">Share</TableHead>
+                      <TableHead className="text-slate-500 dark:text-slate-400">Streak</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -291,6 +367,21 @@ const AdminProjectDetail = () => {
                           <TableCell className="text-slate-500 dark:text-slate-400">{entry.totalCount}</TableCell>
                           <TableCell className="text-slate-500 dark:text-slate-400">{entry.totalWeight}</TableCell>
                           <TableCell className="text-slate-500 dark:text-slate-400">{share}%</TableCell>
+                          <TableCell className="text-slate-500 dark:text-slate-400">
+                            {(() => {
+                              const streak = streakMap[String(entry.user._id)]
+                              return streak && streak.current > 0 ? (
+                                <Badge
+                                  variant="secondary"
+                                  className="bg-orange-50 text-orange-700 dark:bg-orange-950/80 dark:text-orange-300"
+                                >
+                                  {streak.current}d
+                                </Badge>
+                              ) : (
+                                <span className="text-slate-300 dark:text-slate-600">—</span>
+                              )
+                            })()}
+                          </TableCell>
                         </TableRow>
                       )
                     })}
@@ -377,6 +468,70 @@ const AdminProjectDetail = () => {
               )
             })
           )}
+        </CardContent>
+      </Card>
+
+      <Card className="mb-6 border-[#e8e8ef] bg-white shadow-sm">
+        <CardHeader className="flex flex-row items-center justify-between border-b border-[#e8e8ef] px-5 py-4">
+          <CardTitle className="text-base font-semibold">Webhook Setup</CardTitle>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleGenerateWebhookSecret}
+            disabled={generatingSecret}
+            className="text-blue-600 hover:text-blue-700 dark:text-blue-400"
+          >
+            {generatingSecret ? <Loader2 className="h-4 w-4 animate-spin" /> : <KeyRound className="h-4 w-4" />}
+            {webhookSecret ? 'Regenerate Secret' : 'Generate Secret'}
+          </Button>
+        </CardHeader>
+        <CardContent className="p-5">
+          <p className="mb-3 text-sm text-slate-500 dark:text-slate-400">
+            GitHub webhooks require an HMAC secret. After generating, use this secret to sign requests from your GitHub repo and verify them with the simulator.
+          </p>
+          {webhookSecret && (
+            <div className="flex flex-wrap items-center gap-2">
+              <code className="flex-1 min-w-0 truncate rounded-lg border border-[#e8e8ef] bg-[#f9f9fb] px-3 py-2 text-sm font-mono text-[#1a1a2e] break-all">
+                {webhookSecret}
+              </code>
+              <Button variant="outline" size="sm" onClick={handleCopyWebhookSecret}>
+                <Copy className="h-4 w-4" />
+                Copy
+              </Button>
+            </div>
+          )}
+          {webhookMsg && <p className="mt-2 text-xs text-[#4f46e5]">{webhookMsg}</p>}
+          <div className="mt-4 border-t border-[#e8e8ef] pt-4 dark:border-slate-800">
+            <p className="mb-2 text-sm font-medium text-slate-700 dark:text-slate-300">
+              Track these webhook events
+            </p>
+            <div className="flex flex-wrap gap-2">
+              {WEBHOOK_EVENT_OPTIONS.map((opt) => {
+                const enabled = webhookEvents.includes(opt.id)
+                const onlyOneEnabled = enabled && webhookEvents.length === 1
+                return (
+                  <button
+                    key={opt.id}
+                    type="button"
+                    disabled={onlyOneEnabled}
+                    onClick={() => handleToggleWebhookEvent(project._id, onlyOneEnabled)}
+                    className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-50 ${
+                      enabled
+                        ? 'border-blue-600 bg-blue-50 text-blue-700 dark:bg-blue-950/80 dark:text-blue-300 dark:border-blue-800'
+                        : 'border-[#e8e8ef] bg-white text-slate-500 hover:bg-slate-50 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-400'
+                    }`}
+                    title={onlyOneEnabled ? 'At least one event category must stay enabled' : undefined}
+                  >
+                    <span className={`h-1.5 w-1.5 rounded-full ${enabled ? 'bg-blue-600 dark:bg-blue-400' : 'bg-slate-300 dark:bg-slate-600'}`} />
+                    {opt.label}
+                  </button>
+                )
+              })}
+            </div>
+            <p className="mt-2 text-xs text-slate-400 dark:text-slate-500">
+              Disabled categories are received but not recorded as contributions.
+            </p>
+          </div>
         </CardContent>
       </Card>
 

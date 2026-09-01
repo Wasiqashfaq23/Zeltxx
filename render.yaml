@@ -1,0 +1,55 @@
+# Render Blueprint for the Zeltxx backend (Express + Socket.IO + Mongoose).
+# Deploy: Render dashboard -> New -> Blueprint -> select this repo (auto-detects render.yaml).
+# It auto-deploys on every push to main (autoDeploy + branch), so Vercel and Render
+# both update live straight from the git main branch.
+#
+# Secret env vars below use sync: false so their values are entered in the Render
+# dashboard only and never committed.
+
+services:
+  - type: web
+    name: zeltxx-backend
+    runtime: node
+    branch: main
+    autoDeploy: true
+    plan: free
+    rootDir: Backend
+    buildCommand: pnpm install --frozen-lockfile
+    startCommand: node index.js
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: TRUST_PROXY
+        value: "true"
+      - key: SMTP_HOST
+        value: smtp.gmail.com
+      - key: SMTP_PORT
+        value: "465"
+      # From here on, fill values in Render dashboard after creation.
+      - key: MONGO_URI
+        sync: false
+      - key: JWT_SECRET
+        sync: false
+      - key: GOOGLE_CLIENT_ID
+        sync: false
+      - key: GOOGLE_CLIENT_SECRET
+        sync: false
+      - key: GOOGLE_CALLBACK_URL
+        sync: false
+      - key: CLIENT_URL
+        sync: false
+      - key: CORS_ORIGINS
+        sync: false
+      - key: SMTP_USER
+        sync: false
+      - key: SMTP_PASS
+        sync: false
+      - key: SMTP_FROM
+        sync: false
+      - key: CLOUDINARY_CLOUD_NAME
+        sync: false
+      - key: CLOUDINARY_API_KEY
+        sync: false
+      - key: CLOUDINARY_API_SECRET
+        sync: false

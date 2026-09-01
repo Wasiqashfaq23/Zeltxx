@@ -1,25 +1,32 @@
 {
-  "name": "Backend",
+  "name": "zeltxx-backend",
   "version": "1.0.0",
-  "description": "",
+  "description": "Zeltxx collaboration platform API (Express + Mongoose + Socket.IO)",
   "main": "index.js",
+  "type": "module",
   "scripts": {
     "dev": "nodemon index.js",
     "start": "node index.js",
-    "seed": "node seed.js",
-    "clear": "node clear_data.js"
+    "seed": "node scripts/seed.js",
+    "clear": "node scripts/clear_data.js",
+    "repair:commits": "node scripts/repair_commit_users.js",
+    "check": "node scripts/check-syntax.js",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "format": "prettier --write ."
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "type": "module",
   "dependencies": {
+    "cloudinary": "^2.11.0",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.6",
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
     "jsonwebtoken": "^9.0.3",
     "mongoose": "^9.7.2",
+    "multer": "^2.2.0",
     "node-cron": "^4.5.0",
     "nodemailer": "^9.0.5",
     "passport": "^0.7.0",
@@ -27,6 +34,9 @@
     "socket.io": "^4.8.3"
   },
   "devDependencies": {
-    "nodemon": "^3.1.14"
+    "eslint": "^9.39.5",
+    "globals": "^16.5.0",
+    "nodemon": "^3.1.14",
+    "prettier": "^3.9.6"
   }
 }

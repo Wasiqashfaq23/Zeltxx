@@ -18,6 +18,15 @@ const projectSchema = new Schema({
         type: String,
         default: ''
     },
+    webhookSecret: {
+        type: String,
+        default: '',
+        select: false
+    },
+    webhookEvents: {
+        type: [String],
+        default: ['push', 'pr', 'issues', 'review']
+    },
     members: [{
         user: { type: Schema.Types.ObjectId, ref: 'User' },
         role: { type: String, enum: ['admin', 'collaborator'], default: 'collaborator' }
@@ -27,5 +36,7 @@ const projectSchema = new Schema({
         default: true
     }
 }, { timestamps: true })
+
+projectSchema.index({ 'members.user': 1 })
 
 export default mongoose.model('Project', projectSchema)

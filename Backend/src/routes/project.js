@@ -2,7 +2,7 @@ import express from 'express'
 import { protect } from "../middleware/auth.js"
 import Project from "../models/project.js"
 import { ProjectRole } from "../middleware/roleGuard.js"
-import { createProject, getProjects, getProjectById, updateProject, deleteProject, inviteMember, removeMember, updateProjectNotes } from "../controllers/project.js"
+import { createProject, getProjects, getProjectById, updateProject, deleteProject, inviteMember, removeMember, updateProjectNotes, generateWebhookSecret, updateWebhookEvents, getProjectActivity } from "../controllers/project.js"
 const router = express.Router()
 
 const attachProject = async (req, res, next) => {
@@ -20,11 +20,14 @@ router.use(protect)
 
 router.post('/',        createProject)
 router.get('/',         getProjects)
+router.get('/:id/activity', getProjectActivity)
 router.get('/:id',      getProjectById)
 router.patch('/:id',    attachProject, ProjectRole('admin'), updateProject)
 router.patch('/:id/notes', updateProjectNotes)
 router.delete('/:id',   attachProject, ProjectRole('admin'), deleteProject)
 router.post('/:id/invite',              attachProject, ProjectRole('admin'), inviteMember)
 router.delete('/:id/remove/:userId',    attachProject, ProjectRole('admin'), removeMember)
+router.post('/:id/webhook-secret',      attachProject, ProjectRole('admin'), generateWebhookSecret)
+router.patch('/:id/webhook-events',     attachProject, ProjectRole('admin'), updateWebhookEvents)
 
 export default router  

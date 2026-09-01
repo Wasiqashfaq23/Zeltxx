@@ -1,28 +1,28 @@
-import mongoose from 'mongoose'
+﻿import mongoose from 'mongoose'
 import dotenv from 'dotenv'
 import path from 'path'
 import { fileURLToPath } from 'url'
 
-import User from './src/models/user.js'
-import Project from './src/models/project.js'
-import Task from './src/models/task.js'
-import Contribution, { WEIGHTS } from './src/models/contribution.js'
-import Chat from './src/models/chat.js'
-import Resource from './src/models/resource.js'
-import Snapshot from './src/models/snapshot.js'
+import User from '../src/models/user.js'
+import Project from '../src/models/project.js'
+import Task from '../src/models/task.js'
+import Contribution, { WEIGHTS } from '../src/models/contribution.js'
+import Chat from '../src/models/chat.js'
+import Resource from '../src/models/resource.js'
+import SNAPSHOT from '../src/models/SNAPSHOT.js'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 
-dotenv.config({ path: path.join(__dirname, '.env') })
+dotenv.config({ path: path.join(__dirname, '../.env') })
 
 const MONGO_URI = process.env.MONGO_URI || 'mongodb://localhost:27017/zeltxx'
 
 async function seed() {
   try {
-    console.log('🌱 Connecting to MongoDB at:', MONGO_URI)
+    console.log('ðŸŒ± Connecting to MongoDB at:', MONGO_URI)
     await mongoose.connect(MONGO_URI)
-    console.log('✅ Connected to MongoDB')
+    console.log('âœ… Connected to MongoDB')
 
     // Find any existing user (e.g. logged in user) to preserve their account!
     const existingUsers = await User.find({})
@@ -35,7 +35,7 @@ async function seed() {
         email: 'sarah.chen@zeltxx.io',
         googleId: 'google_dummy_sarah_101',
         avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150',
-        statusText: '⚡ Architecting v2 pipeline',
+        statusText: 'âš¡ Architecting v2 pipeline',
         bio: 'Principal Systems Architect & Technical Co-founder at Zeltxx.'
       },
       {
@@ -43,7 +43,7 @@ async function seed() {
         email: 'alex.rivera@zeltxx.io',
         googleId: 'google_dummy_alex_102',
         avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150',
-        statusText: '🚀 Refactoring React components',
+        statusText: 'ðŸš€ Refactoring React components',
         bio: 'Senior Frontend Specialist passionate about UI/UX & design systems.'
       },
       {
@@ -51,7 +51,7 @@ async function seed() {
         email: 'elena.rostova@zeltxx.io',
         googleId: 'google_dummy_elena_103',
         avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150',
-        statusText: '☕ Coffee break & CI/CD ops',
+        statusText: 'â˜• Coffee break & CI/CD ops',
         bio: 'DevOps & Reliability Engineer keeping builds lightning fast.'
       }
     ]
@@ -84,19 +84,19 @@ async function seed() {
       {
         name: 'Zeltxx Enterprise Platform v2',
         description: 'Next-generation project management platform with real-time sync, automated metrics & team leaderboard.',
-        notes: `### 🎯 Project Goals\n- Elevate UI/UX to 60fps glassmorphism standard\n- Real-time Socket.io collaborative task boards\n- Automated GitHub Webhooks integration\n\n### 📌 Key Milestones\n1. Sprint 1: Auth & User Profiles\n2. Sprint 2: Kanban & Live Chat\n3. Sprint 3: AI IntelliSense & Leaderboard`,
+        notes: `### ðŸŽ¯ Project Goals\n- Elevate UI/UX to 60fps glassmorphism standard\n- Real-time Socket.io collaborative task boards\n- Automated GitHub Webhooks integration\n\n### ðŸ“Œ Key Milestones\n1. Sprint 1: Auth & User Profiles\n2. Sprint 2: Kanban & Live Chat\n3. Sprint 3: AI IntelliSense & Leaderboard`,
         members: projectMembers
       },
       {
         name: 'AI Neural Analytics Pipeline',
         description: 'High-throughput predictive intelligence engine for team performance & workload balancing.',
-        notes: `### 🧠 Pipeline Architecture\n- Kafka streams -> Python worker pools -> Mongo Aggregations\n- Target latency < 50ms per contribution event`,
+        notes: `### ðŸ§  Pipeline Architecture\n- Kafka streams -> Python worker pools -> Mongo Aggregations\n- Target latency < 50ms per contribution event`,
         members: projectMembers
       },
       {
         name: 'Design System & Component Library',
         description: 'Accessible WCAG 2.1 AA compliant UI token system and React 19 component library.',
-        notes: `### 🎨 Design Tokens\n- Primary: Blue-600\n- Dark Mode: Permanent Slate-900 / Slate-950\n- Zero hardcoded colors!`,
+        notes: `### ðŸŽ¨ Design Tokens\n- Primary: Blue-600\n- Dark Mode: Permanent Slate-900 / Slate-950\n- Zero hardcoded colors!`,
         members: projectMembers
       }
     ]
@@ -115,7 +115,7 @@ async function seed() {
     }
 
     // Seed Tasks for each project
-    console.log('📋 Seeding Tasks...')
+    console.log('ðŸ“‹ Seeding Tasks...')
     const sampleTaskTitles = [
       { title: 'Refactor Auth Context and Token Deduplication', status: 'done', priority: 'high' },
       { title: 'Implement Permanent Dark Sidebar Shell with Glassmorphism', status: 'done', priority: 'high' },
@@ -160,8 +160,8 @@ async function seed() {
       }
     }
 
-    // Seed Activity Feed Contributions & Daily Snapshots
-    console.log('📈 Seeding Contributions & 14-Day Activity Snapshots...')
+    // Seed Activity Feed Contributions & Daily SNAPSHOTs
+    console.log('ðŸ“ˆ Seeding Contributions & 14-Day Activity SNAPSHOTs...')
     const contribTypes = ['commit', 'review', 'task_complete', 'file_upload', 'comment']
 
     for (const proj of seededProjects) {
@@ -193,14 +193,14 @@ async function seed() {
                   sha: Math.random().toString(36).substring(2, 9)
                 },
                 reactions: [
-                  { user: primaryUser._id, emoji: '🔥' },
-                  { user: u._id, emoji: '🚀' }
+                  { user: primaryUser._id, emoji: 'ðŸ”¥' },
+                  { user: u._id, emoji: 'ðŸš€' }
                 ],
                 createdAt: targetDate
               })
             }
 
-            await Snapshot.findOneAndUpdate(
+            await SNAPSHOT.findOneAndUpdate(
               { project: proj._id, user: u._id, date: new Date(dateStr) },
               {
                 project: proj._id,
@@ -214,20 +214,20 @@ async function seed() {
             )
           }
         }
-        console.log(`Seeded 14-day activity snapshots for: ${proj.name}`)
+        console.log(`Seeded 14-day activity SNAPSHOTs for: ${proj.name}`)
       }
     }
 
     // Seed Team Chat Messages
-    console.log('💬 Seeding Live Team Chat...')
+    console.log('ðŸ’¬ Seeding Live Team Chat...')
     for (const proj of seededProjects) {
       const chatCount = await Chat.countDocuments({ project: proj._id })
       if (chatCount === 0) {
         const sampleMessages = [
-          'Hey team! Welcome to the new Zeltxx platform workspace. 🚀',
+          'Hey team! Welcome to the new Zeltxx platform workspace. ðŸš€',
           'The dark sidebar shell and blue theme contrast updates are now live!',
           'Great work on the task board drag & drop experience.',
-          'Checking CI/CD pipeline build status... All green! ✅'
+          'Checking CI/CD pipeline build status... All green! âœ…'
         ]
         for (let i = 0; i < sampleMessages.length; i++) {
           const u = uniqueUsers[i % uniqueUsers.length]
@@ -243,7 +243,7 @@ async function seed() {
     }
 
     // Seed Resources (Docs & Links)
-    console.log('🔗 Seeding Project Resources...')
+    console.log('ðŸ”— Seeding Project Resources...')
     for (const proj of seededProjects) {
       const resCount = await Resource.countDocuments({ project: proj._id })
       if (resCount === 0) {
@@ -274,7 +274,7 @@ async function seed() {
       }
     }
 
-    console.log('\n🎉 DATABASE SEEDING COMPLETED SUCCESSFULLY!')
+    console.log('\nðŸŽ‰ DATABASE SEEDING COMPLETED SUCCESSFULLY!')
     console.log('Summary:')
     console.log(`- Users: ${uniqueUsers.length}`)
     console.log(`- Projects: ${seededProjects.length}`)
@@ -283,7 +283,7 @@ async function seed() {
 
     process.exit(0)
   } catch (err) {
-    console.error('❌ Seeding Error:', err)
+    console.error('âŒ Seeding Error:', err)
     process.exit(1)
   }
 }

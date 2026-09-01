@@ -24,12 +24,13 @@ const ContribHeatmap = ({ snapshots = [], contributions = [] }) => {
         }
       })
     } else if (contributions && contributions.length > 0) {
+      // Weight by contribution type so a day of commits (4pt) outweighs bare comments.
       contributions.forEach((c) => {
         const cDate = c.createdAt ? new Date(c.createdAt).toISOString().split('T')[0] : null
         if (cDate) {
           const found = dates.find((d) => d.dateStr === cDate)
           if (found) {
-            found.count += 1
+            found.count += c.weight || 1
           }
         }
       })

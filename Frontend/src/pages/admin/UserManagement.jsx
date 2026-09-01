@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react'
+import { Navigate } from 'react-router-dom'
 import { Search } from 'lucide-react'
 import { getProjects } from '../../api/projects'
+import { useAuth } from '../../context/AuthContext'
 import Layout from '../../components/layout/Layout'
 import Loader from '../../components/ui/Loader'
 import EmptyState from '../../components/ui/EmptyState'
@@ -21,6 +23,7 @@ const UserManagement = () => {
   const [projects, setProjects] = useState([])
   const [loading, setLoading] = useState(true)
   const [searchQuery, setSearchQuery] = useState('')
+  const { user } = useAuth()
 
   useEffect(() => {
     getProjects()
@@ -50,6 +53,11 @@ const UserManagement = () => {
   })
 
   if (loading) return <Loader />
+
+  const isAdminOfAnyProject = projects.some((p) =>
+    p.members.some((m) => (m.user._id || m.user) === user?._id && m.role === 'admin')
+  )
+  if (!isAdminOfAnyProject) return <Navigate to="/unauthorized" replace />
 
   return (
     <Layout>

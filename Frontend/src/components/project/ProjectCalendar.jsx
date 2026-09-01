@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react'
-import { Calendar as CalendarIcon, Clock, CheckCircle2, AlertCircle } from 'lucide-react'
+import { Calendar as CalendarIcon, Clock } from 'lucide-react'
 import { getTasks } from '../../api/task'
 import UserAvatar from '../ui/UserAvatar'
 import { Badge } from '@/components/ui/badge'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent, CardHeader } from '@/components/ui/card'
 
 const ProjectCalendar = ({ projectId }) => {
   const [tasks, setTasks] = useState([])

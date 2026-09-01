@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { User, Sparkles, Check, Smile } from 'lucide-react'
+import { Check } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import { updateProfile } from '../api/auth'
 import Layout from '../components/layout/Layout'

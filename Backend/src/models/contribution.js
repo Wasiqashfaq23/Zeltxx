@@ -1,16 +1,7 @@
 import mongoose from 'mongoose'
+import { WEIGHTS } from '../config/constants.js'
 
 const { Schema } = mongoose
-
-
-const WEIGHTS = {
-    commit: 4,
-    review: 3,
-    task_complete: 2,
-    file_upload: 2,
-    comment: 1
-}
-
 
 const contributionSchema = new Schema({
     project: {
@@ -25,7 +16,7 @@ const contributionSchema = new Schema({
     },
     type: {
         type: String,
-        enum: ['commit', 'comment', 'task_complete', 'file_upload', 'review'], required: true
+        enum: ['commit', 'comment', 'task_complete', 'file_upload', 'review', 'pr_opened', 'pr_merged', 'issues_opened', 'issues_closed'], required: true
     },
     weight: {
         type: Number,
@@ -41,9 +32,11 @@ const contributionSchema = new Schema({
 }, { timestamps: true })
 
 
-contributionSchema.pre('save', function (next) {
+contributionSchema.pre('save', function (_next) {
     this.weight = WEIGHTS[this.type]
 })
+
+contributionSchema.index({ project: 1, createdAt: -1 })
 
 export { WEIGHTS }
 

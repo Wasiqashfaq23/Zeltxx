@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useState } from 'react'
 import { io } from 'socket.io-client'
 import { useAuth } from './AuthContext'
+import { backendUrl } from '../config'
 
 const SocketContext = createContext(null)
 
@@ -14,14 +15,12 @@ export const SocketProvider = ({ children }) => {
       return
     }
 
-    const rawUrl =
-      import.meta.env.BACKEND_URL ||
-      import.meta.env.VITE_BACKEND_URL ||
-      import.meta.env.VITE_API_URL ||
-      'http://localhost:5001'
-    const backendUrl = rawUrl.replace(/\/$/, '')
     const s = io(backendUrl, {
       withCredentials: true
+    })
+
+    s.on('connect_error', (err) => {
+      console.warn('Socket connection failed:', err?.message || err)
     })
 
     setSocket(s)

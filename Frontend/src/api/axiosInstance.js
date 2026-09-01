@@ -1,17 +1,19 @@
 import axios from 'axios'
-
-const getBackendUrl = () => {
-  const url =
-    import.meta.env.BACKEND_URL ||
-    import.meta.env.VITE_BACKEND_URL ||
-    import.meta.env.VITE_API_URL ||
-    'http://localhost:5001'
-  return url.replace(/\/$/, '')
-}
+import { backendUrl } from '../config'
 
 const api = axios.create({
-  baseURL: getBackendUrl(),
+  baseURL: backendUrl,
   withCredentials: true
 })
+
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401 && window.location.pathname !== '/login') {
+      window.location.assign('/login')
+    }
+    return Promise.reject(error)
+  }
+)
 
 export default api

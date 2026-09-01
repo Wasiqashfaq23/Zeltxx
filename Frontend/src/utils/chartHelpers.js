@@ -13,20 +13,25 @@ export const snapshotsToLineData = (snapshots) => {
   if (!snapshots || !snapshots.length) return []
   const grouped = {}
   snapshots.forEach((s) => {
-    const date = new Date(s.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
-    if (!grouped[date]) grouped[date] = { date }
-    grouped[date][s.user.name] = s.totalCount
+    if (!s || !s.user) return
+    const dateKey = String(s.date || '').slice(0, 10)
+    if (!dateKey) return
+    const label = new Date(dateKey).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+    if (!grouped[dateKey]) grouped[dateKey] = { date: label }
+    grouped[dateKey][s.user.name || 'Unknown'] = s.totalCount
   })
-  return Object.values(grouped).sort((a, b) => new Date(a.date) - new Date(b.date))
+  return Object.keys(grouped)
+    .sort()
+    .map((k) => grouped[k])
 }
 
 // convert snapshots to area chart data for one user
 export const snapshotsToAreaData = (snapshots, userId) => {
   if (!snapshots || !snapshots.length) return []
   return snapshots
-    .filter((s) => s.user._id === userId)
+    .filter((s) => s && s.user && s.user._id === userId)
     .map((s) => ({
-      date: new Date(s.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+      date: new Date(String(s.date).slice(0, 10)).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
       count: s.totalCount,
     }))
     .sort((a, b) => new Date(a.date) - new Date(b.date))

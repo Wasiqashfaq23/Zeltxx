@@ -10,9 +10,11 @@ const CollaborativeNotes = ({ projectId, initialNotes }) => {
   const [saveStatus, setSaveStatus] = useState('saved') // 'saved' | 'saving'
   const [lastEditor, setLastEditor] = useState('')
   const saveTimeoutRef = useRef(null)
+  const lastSavedRef = useRef(initialNotes || '')
 
   useEffect(() => {
     setNotes(initialNotes || '')
+    lastSavedRef.current = initialNotes || ''
   }, [initialNotes])
 
   useEffect(() => {
@@ -20,6 +22,7 @@ const CollaborativeNotes = ({ projectId, initialNotes }) => {
 
     const handleNoteChange = ({ notes: newNotes, updatedBy }) => {
       setNotes(newNotes)
+      lastSavedRef.current = newNotes
       setSaveStatus('saved')
       if (updatedBy) setLastEditor(updatedBy)
     }
@@ -37,9 +40,18 @@ const CollaborativeNotes = ({ projectId, initialNotes }) => {
 
     if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current)
     saveTimeoutRef.current = setTimeout(() => {
+      // Dirty-flag guard: skip the network call when nothing changed
+      // since the last successful save (or the last remote update).
+      if (val.trim() === (lastSavedRef.current || '').trim()) {
+        setSaveStatus('saved')
+        return
+      }
       updateProjectNotes(projectId, { notes: val })
-        .then(() => setSaveStatus('saved'))
-        .catch((err) => console.error(err))
+        .then(() => {
+          lastSavedRef.current = val
+          setSaveStatus('saved')
+        })
+        .catch(() => setSaveStatus('saved'))
     }, 800)
   }
 

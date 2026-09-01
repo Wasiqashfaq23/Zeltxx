@@ -1,8 +1,8 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { Plus, Activity, Search, Columns3, MessageSquare, FileText, FolderGit2, Calendar as CalendarIcon, GitBranch, FileDown, ArrowLeft } from 'lucide-react'
-import { getProjectById, inviteMember } from '../api/projects'
-import { getContributions, logContribution, toggleReaction } from '../api/contributions'
+import { Plus, Activity, Search, Columns3, MessageSquare, FileText, FolderGit2, Calendar as CalendarIcon, GitBranch, FileDown, ArrowLeft, Loader2, Activity as ActivityIcon } from 'lucide-react'
+import { getProjectById, inviteMember, getProjectActivity } from '../api/projects'
+import { getContributions, logContribution, toggleReaction, exportContributionsCsv } from '../api/contributions'
 import { useAuth } from '../context/AuthContext'
 import { useSocket } from '../context/SocketContext'
 import Layout from '../components/layout/Layout'
@@ -39,14 +39,28 @@ import {
 } from '@/components/ui/select'
 
 const CONTRIBUTION_TYPES = ['commit', 'comment', 'task_complete', 'file_upload', 'review']
+// Types a member may log manually — everything else is recorded automatically
+// by its server-side trigger (git sync, webhook, task completion, resources).
+const MANUAL_TYPES = ['comment', 'review']
 const EMOJIS = ['👍', '❤️', '🚀', '🔥', '👏']
+const PAGE_SIZE = 50
+
+const describeMeta = (meta) => {
+  if (!meta) return null
+  if (typeof meta === 'string') return meta
+  if (meta.commitMsg) return `[${meta.sha || 'commit'}] ${meta.commitMsg}`
+  if (meta.note) return meta.note
+  if (meta.title) return `[task] ${meta.title}`
+  if (meta.url) return 'Related link'
+  return null
+}
 
 const enrichContribution = (contribution, project, currentUser) => {
   if (contribution.user?.name) return contribution
   const userId = contribution.user?._id || contribution.user
-  const member = project?.members?.find((m) => m.user._id === userId)
+  const member = project?.members?.find((m) => String(m.user._id) === String(userId))
   if (member) return { ...contribution, user: member.user }
-  if (userId === currentUser?._id) return { ...contribution, user: currentUser }
+  if (String(userId) === String(currentUser?._id)) return { ...contribution, user: currentUser }
   return contribution
 }
 
@@ -58,19 +72,26 @@ const ProjectPage = () => {
   const [project, setProject] = useState(null)
   const [contributions, setContributions] = useState([])
   const [onlineUsers, setOnlineUsers] = useState([])
+  const [activities, setActivities] = useState([])
   const [loading, setLoading] = useState(true)
+  const [loadingMore, setLoadingMore] = useState(false)
+  const [hasMore, setHasMore] = useState(false)
   const [dialogOpen, setDialogOpen] = useState(false)
-  const [type, setType] = useState('commit')
+  const [type, setType] = useState('comment')
   const [meta, setMeta] = useState('')
   const [searchFeed, setSearchFeed] = useState('')
   const [typeFilter, setTypeFilter] = useState('all')
   const [activeTab, setActiveTab] = useState('feed')
+  const projectRef = useRef(project)
+  projectRef.current = project
 
   useEffect(() => {
-    Promise.all([getProjectById(id), getContributions(id)])
-      .then(([projectRes, contributionsRes]) => {
+    Promise.all([getProjectById(id), getContributions(id, { limit: PAGE_SIZE, offset: 0 }), getProjectActivity(id, 50)])
+      .then(([projectRes, contributionsRes, activityRes]) => {
         setProject(projectRes.data)
-        setContributions(contributionsRes.data)
+        setContributions(contributionsRes.data.contributions || [])
+        setHasMore(!!contributionsRes.data.hasMore)
+        setActivities(activityRes.data || [])
       })
       .catch((err) => console.error(err))
       .finally(() => setLoading(false))
@@ -78,18 +99,18 @@ const ProjectPage = () => {
 
   useEffect(() => {
     if (!socket || !id || !user) return
-    socket.emit('join_project', { projectId: id, user })
+    socket.emit('join_project', { projectId: id })
 
     const handleNewContribution = (contribution) => {
       setContributions((prev) => {
         if (prev.some((c) => c._id === contribution._id)) return prev
-        return [enrichContribution(contribution, project, user), ...prev]
+        return [enrichContribution(contribution, projectRef.current, user), ...prev]
       })
     }
 
     const handleUpdatedContribution = (updated) => {
       setContributions((prev) =>
-        prev.map((c) => (c._id === updated._id ? enrichContribution(updated, project, user) : c))
+        prev.map((c) => (c._id === updated._id ? enrichContribution(updated, projectRef.current, user) : c))
       )
     }
 
@@ -97,25 +118,31 @@ const ProjectPage = () => {
       setOnlineUsers(users)
     }
 
+    const handleActivity = (activity) => {
+      setActivities((prev) => [activity, ...prev.filter((a) => a._id !== activity._id)].slice(0, 100))
+    }
+
     socket.on('new_contribution', handleNewContribution)
     socket.on('contribution_updated', handleUpdatedContribution)
     socket.on('presence_update', handlePresence)
+    socket.on('activity_logged', handleActivity)
 
     return () => {
       socket.emit('leave_project', id)
       socket.off('new_contribution', handleNewContribution)
       socket.off('contribution_updated', handleUpdatedContribution)
       socket.off('presence_update', handlePresence)
+      socket.off('activity_logged', handleActivity)
     }
-  }, [socket, id, project, user])
+  }, [socket, id, user])
 
   const role = project?.members?.find((m) => m.user._id === user?._id)?.role
 
   const handleSubmit = (e) => {
     e.preventDefault()
-    logContribution({ projectId: id, type, meta: meta || undefined })
+    logContribution({ projectId: id, type, meta })
       .then((res) => {
-        const enriched = enrichContribution(res.data, project, user)
+        const enriched = enrichContribution(res.data, projectRef.current, user)
         setContributions((prev) => {
           if (prev.some((c) => c._id === enriched._id)) return prev
           return [enriched, ...prev]
@@ -123,7 +150,26 @@ const ProjectPage = () => {
         setMeta('')
         setDialogOpen(false)
       })
+      .catch((err) => alert(err.response?.data?.message || 'Failed to log contribution'))
+  }
+
+  const handleLoadMore = () => {
+    if (loadingMore || !hasMore) return
+    setLoadingMore(true)
+    getContributions(id, { limit: PAGE_SIZE, offset: contributions.length })
+      .then((res) => {
+        const page = res.data.contributions || []
+        setContributions((prev) => {
+          const merged = [...prev]
+          for (const c of page) {
+            if (!merged.some((x) => x._id === c._id)) merged.push(c)
+          }
+          return merged
+        })
+        setHasMore(!!res.data.hasMore)
+      })
       .catch((err) => console.error(err))
+      .finally(() => setLoadingMore(false))
   }
 
   const handleReact = (contribId, emoji) => {
@@ -158,7 +204,7 @@ const ProjectPage = () => {
       `\n## Team Members (${project.members.length})`,
       ...project.members.map((m) => `- ${m.user.name} (${m.user.email}) - ${m.role}`),
       `\n## Activity History`,
-      ...contributions.map((c) => `- [${c.type.toUpperCase()}] ${c.user?.name || 'Member'}: ${c.meta || 'No details'} (${new Date(c.createdAt).toLocaleDateString()})`),
+      ...contributions.map((c) => `- [${c.type.toUpperCase()}] ${c.user?.name || 'Member'}: ${describeMeta(c.meta) || 'No details'} (${new Date(c.createdAt).toLocaleDateString()})`),
       `\n## Shared Project Notes`,
       project.notes || 'No shared notes recorded.'
     ]
@@ -174,12 +220,31 @@ const ProjectPage = () => {
     URL.revokeObjectURL(url)
   }
 
+  const handleExportCsv = async () => {
+    try {
+      const res = await exportContributionsCsv(id)
+      const blob = new Blob([res.data], { type: 'text/csv;charset=utf-8;' })
+      const url = URL.createObjectURL(blob)
+      const link = document.createElement('a')
+      link.href = url
+      link.setAttribute('download', `${(project?.name || 'project').replace(/\s+/g, '_')}_contributions.csv`)
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+      URL.revokeObjectURL(url)
+    } catch (err) {
+      alert(err.response?.data?.message || 'Failed to export CSV')
+    }
+  }
+
   const filteredContributions = contributions.filter((c) => {
     const matchesType = typeFilter === 'all' || c.type === typeFilter
+    const search = searchFeed.toLowerCase()
+    const metaSearch = typeof c.meta === 'string' ? c.meta.toLowerCase() : JSON.stringify(c.meta || '').toLowerCase()
     const matchesSearch =
       !searchFeed ||
-      (c.user?.name && c.user.name.toLowerCase().includes(searchFeed.toLowerCase())) ||
-      (c.meta && c.meta.toLowerCase().includes(searchFeed.toLowerCase()))
+      (c.user?.name && c.user.name.toLowerCase().includes(search)) ||
+      metaSearch.includes(search)
     return matchesType && matchesSearch
   })
 
@@ -225,6 +290,21 @@ const ProjectPage = () => {
         </div>
 
         <div className="flex flex-wrap items-center gap-3">
+          {onlineUsers.length > 0 && (
+            <div className="flex items-center -space-x-2" title="Team members online right now">
+              {onlineUsers
+                .filter((u) => String(u._id) !== String(user?._id))
+                .slice(0, 6)
+                .map((u) => (
+                  <UserAvatar
+                    key={u._id}
+                    user={u}
+                    size="xs"
+                    className="ring-2 ring-white dark:ring-slate-900"
+                  />
+                ))}
+            </div>
+          )}
           <div className="flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 dark:bg-emerald-950/60 dark:border-emerald-800 px-3 py-1 text-xs font-medium text-emerald-700 dark:text-emerald-300">
             <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
             <span>{onlineUsers.length > 0 ? `${onlineUsers.length} Online Now` : '1 Online'}</span>
@@ -238,6 +318,16 @@ const ProjectPage = () => {
           >
             <FileDown className="h-4 w-4" />
             Export Summary (.md)
+          </Button>
+
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleExportCsv}
+            className="border-slate-200 bg-white text-slate-800 hover:bg-slate-100 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800 font-medium"
+          >
+            <FileDown className="h-4 w-4" />
+            Export CSV
           </Button>
 
           {role === 'admin' && (
@@ -458,7 +548,8 @@ const ProjectPage = () => {
                           {contribution.meta && (
                             <p className="text-sm text-slate-300 break-words">
                               {typeof contribution.meta === 'object'
-                                ? (contribution.meta.commitMsg ? `[${contribution.meta.sha || 'commit'}] ${contribution.meta.commitMsg}` : JSON.stringify(contribution.meta))
+                                ? (describeMeta(contribution.meta) ||
+                                  (Object.keys(contribution.meta).length ? JSON.stringify(contribution.meta) : null))
                                 : contribution.meta}
                             </p>
                           )}
@@ -491,6 +582,55 @@ const ProjectPage = () => {
                         </div>
                       </div>
                     ))}
+                    {hasMore && (
+                      <div className="p-3 flex justify-center">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={handleLoadMore}
+                          disabled={loadingMore}
+                          className="gap-2"
+                        >
+                          {loadingMore ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
+                          {loadingMore ? 'Loading...' : 'Load more'}
+                        </Button>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          )}
+
+          {activeTab === 'feed' && (
+            <Card className="border-slate-200 bg-white shadow-xs dark:border-slate-800 dark:bg-slate-900">
+              <CardHeader className="border-b border-slate-200 px-4 sm:px-5 py-4 dark:border-slate-800">
+                <CardTitle className="text-base font-semibold text-slate-900 dark:text-slate-100 flex items-center gap-2">
+                  <ActivityIcon className="h-4 w-4 text-[#4f46e5]" />
+                  Recent Activity
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-0">
+                {activities.length === 0 ? (
+                  <div className="p-5 text-center text-xs text-slate-400">No activity yet</div>
+                ) : (
+                  <div className="max-h-[420px] overflow-y-auto">
+                    {activities.slice(0, 30).map((a) => (
+                      <div
+                        key={a._id}
+                        className="flex items-start gap-3 border-b border-[#f0f0f5] px-4 sm:px-5 py-3 last:border-0 dark:border-slate-800"
+                      >
+                        <UserAvatar user={a.actor || { name: a.actorName || '?' }} size="xs" />
+                        <div className="min-w-0 flex-1">
+                          <p className="text-sm text-slate-700 dark:text-slate-200 leading-snug">
+                            {a.message}
+                          </p>
+                          <span className="text-[11px] text-slate-400">
+                            {new Date(a.createdAt).toLocaleString()}
+                          </span>
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 )}
               </CardContent>
@@ -498,7 +638,7 @@ const ProjectPage = () => {
           )}
 
           {activeTab === 'kanban' && (
-            <KanbanBoard projectId={id} members={project.members} />
+            <KanbanBoard projectId={id} members={project.members} isAdmin={role === 'admin'} currentUserId={user?._id} />
           )}
 
           {activeTab === 'calendar' && <ProjectCalendar projectId={id} />}
@@ -551,7 +691,7 @@ const ProjectPage = () => {
             </CardContent>
           </Card>
 
-          <ContribHeatmap snapshots={contributions} contributions={contributions} />
+          <ContribHeatmap contributions={contributions} />
         </div>
       </div>
 
@@ -568,13 +708,16 @@ const ProjectPage = () => {
                   <SelectValue placeholder="Select type" />
                 </SelectTrigger>
                 <SelectContent>
-                  {CONTRIBUTION_TYPES.map((t) => (
+                  {MANUAL_TYPES.map((t) => (
                     <SelectItem key={t} value={t}>
                       {t.replace('_', ' ')}
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
+              <p className="mt-1 text-xs text-slate-400">
+                Commits, task completions and file uploads are recorded automatically by the platform.
+              </p>
             </div>
             <div>
               <Label htmlFor="contrib-message">Message</Label>

@@ -78,25 +78,37 @@ export const sendEmail = async ({ to, subject, html, text }) => {
   }
 }
 
+export const escapeHtml = (value) =>
+  String(value ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;')
+
 /**
- * HTML Email Template Builder for Invites & Notifications
+ * HTML Email Template Builder for Invites & Notifications.
+ * All interpolated values are HTML-escaped (defense against injection).
  */
 export const buildInviteEmailHtml = ({ projectName, inviteUrl, inviterName }) => {
   const user = process.env.SMTP_USER || 'wasiqashfaq123@gmail.com'
+  const eName = escapeHtml(projectName)
+  const eInviter = escapeHtml(inviterName)
+  const eUrl = escapeHtml(inviteUrl)
   return `
     <div style="font-family: Arial, sans-serif; background-color: #0f172a; color: #f8fafc; padding: 30px; border-radius: 12px;">
       <div style="max-width: 500px; margin: 0 auto; background: #1e293b; padding: 24px; border-radius: 12px; border: 1px solid #334155;">
         <h2 style="color: #60a5fa; margin-top: 0;">🚀 You've been invited to Zeltxx!</h2>
         <p style="color: #cbd5e1; font-size: 15px;">
-          Hi there, <strong>${inviterName || 'A teammate'}</strong> invited you to collaborate on project <strong>"${projectName}"</strong> on Zeltxx.
+          Hi there, <strong>${eInviter || 'A teammate'}</strong> invited you to collaborate on project <strong>"${eName}"</strong> on Zeltxx.
         </p>
         <div style="margin: 24px 0; text-align: center;">
-          <a href="${inviteUrl}" style="background-color: #2563eb; color: #ffffff; padding: 12px 24px; text-decoration: none; border-radius: 8px; font-weight: bold; display: inline-block;">
+          <a href="${eUrl}" style="background-color: #2563eb; color: #ffffff; padding: 12px 24px; text-decoration: none; border-radius: 8px; font-weight: bold; display: inline-block;">
             Join Project Workspace &rarr;
           </a>
         </div>
         <p style="color: #94a3b8; font-size: 12px; margin-bottom: 0;">
-          Sent via Zeltxx Collaboration Platform (${user})
+          Sent via Zeltxx Collaboration Platform (${escapeHtml(user)})
         </p>
       </div>
     </div>

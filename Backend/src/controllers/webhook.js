@@ -1,76 +1,202 @@
-import Contribution from '../models/contribution.js'
 import Project from '../models/project.js'
-import User from '../models/user.js'
-import Snapshot from '../models/snapshot.js'
+import { WEIGHTS, WEBHOOK_EVENT_TYPES } from '../config/constants.js'
+import { logContributionEvent, sanitizeMeta } from '../services/contribution.service.js'
+import { resolveUserForCommit } from '../services/github.service.js'
 
-export const handleGitHubWebhook = async (req, res) => {
+// contribution type -> webhook event category (toggle knob for admins).
+const TYPE_TO_CATEGORY = {
+  commit: 'push',
+  pr_opened: 'pr',
+  pr_merged: 'pr',
+  issues_opened: 'issues',
+  issues_closed: 'issues',
+  review: 'review'
+}
+
+/**
+ * Maps a raw GitHub webhook (event name + payload) to a Zeltxx contribution
+ * descriptor. Returns null for noisy/inconsequential events (e.g. PR
+ * synchronize) that should not be scored.
+ */
+const classifyEvent = (event, body) => {
+  if (event === 'push' || Array.isArray(body.commits)) {
+    const commit = (body.commits && body.commits[0]) || {}
+    const authorName = commit.author?.name || body.pusher?.name || 'GitHub Committer'
+    const authorEmail = commit.author?.email || commit.committer?.email || ''
+    const rawMeta = body.meta
+    const meta =
+      rawMeta && typeof rawMeta === 'object'
+        ? rawMeta
+        : {
+            commitMsg: typeof rawMeta === 'string' && rawMeta ? rawMeta : (commit.message || 'GitHub Commit').split('\n')[0],
+            sha: commit.id ? commit.id.slice(0, 7) : '',
+            authorName,
+            authorEmail,
+            url: commit.url || body.repository?.html_url || ''
+          }
+    return { type: 'commit', authorName, authorEmail, meta }
+  }
+
+  if (event === 'pull_request' && body.pull_request) {
+    const pr = body.pull_request
+    const action = body.action || ''
+    if (action === 'closed' && pr.merged) {
+      return {
+        type: 'pr_merged',
+        authorName: pr.user?.login || body.sender?.login || '',
+        authorEmail: '',
+        meta: {
+          note: `Merged PR #${pr.number}: ${pr.title || ''}`.slice(0, 200),
+          number: pr.number,
+          action: 'merged',
+          title: pr.title || '',
+          url: pr.html_url || ''
+        }
+      }
+    }
+    if (['opened', 'reopened', 'ready_for_review'].includes(action)) {
+      return {
+        type: 'pr_opened',
+        authorName: pr.user?.login || body.sender?.login || '',
+        authorEmail: '',
+        meta: {
+          note: `Opened PR #${pr.number}: ${pr.title || ''}`.slice(0, 200),
+          number: pr.number,
+          action: 'opened',
+          title: pr.title || '',
+          url: pr.html_url || ''
+        }
+      }
+    }
+    return null
+  }
+
+  if (event === 'issues' && body.issue) {
+    const issue = body.issue
+    const action = body.action || ''
+    if (action === 'opened') {
+      return {
+        type: 'issues_opened',
+        authorName: issue.user?.login || body.sender?.login || '',
+        authorEmail: '',
+        meta: {
+          note: `Opened issue #${issue.number}: ${issue.title || ''}`.slice(0, 200),
+          number: issue.number,
+          action: 'opened',
+          title: issue.title || '',
+          url: issue.html_url || ''
+        }
+      }
+    }
+    if (action === 'closed') {
+      return {
+        type: 'issues_closed',
+        authorName: issue.closed_by?.login || body.sender?.login || '',
+        authorEmail: '',
+        meta: {
+          note: `Closed issue #${issue.number}: ${issue.title || ''}`.slice(0, 200),
+          number: issue.number,
+          action: 'closed',
+          title: issue.title || '',
+          url: issue.html_url || ''
+        }
+      }
+    }
+    return null
+  }
+
+  if (event === 'pull_request_review' && body.action === 'submitted' && body.review) {
+    return {
+      type: 'review',
+      authorName: body.review.user?.login || body.sender?.login || '',
+      authorEmail: '',
+      meta: {
+        note: body.review.state ? `Pull request review: ${body.review.state}` : 'Pull request review',
+        url: body.review.html_url || ''
+      }
+    }
+  }
+
+  return null
+}
+
+/**
+ * Handles GitHub webhooks (real GitHub payloads and the Zeltxx simulator).
+ * The route-level middleware already verified the X-Hub-Signature-256 HMAC.
+ */
+export const handleGitHubWebhook = async (req, res, next) => {
   try {
     const { projectId } = req.params
-    const { event, authorName, authorEmail, meta, type } = req.body
+    const body = req.body || {}
+    const event = req.headers['x-github-event'] || body.event || 'push'
+
+    // GitHub "ping" keeps the configured webhook healthy.
+    if (event === 'ping') return res.status(200).json({ message: 'pong' })
 
     const project = await Project.findById(projectId).populate('members.user', 'name email avatar')
-    if (!project) return res.status(404).json({ message: 'Project not found' })
+    if (!project) return res.status(404).json({ error: 'Project not found' })
 
-    // Resolve actual committer user ID by authorEmail or authorName
-    let userId = null
+    let classified = classifyEvent(event, body)
 
-    if (authorEmail) {
-      const emailLower = authorEmail.toLowerCase().trim()
-      const emailMatch = project.members.find((m) => m.user?.email?.toLowerCase().trim() === emailLower)
-      if (emailMatch?.user) {
-        userId = emailMatch.user._id || emailMatch.user
-      } else {
-        const userByEmail = await User.findOne({ email: emailLower })
-        if (userByEmail) userId = userByEmail._id
+    // Fallback for the Zeltxx simulator / custom payloads that pass a
+    // type + author + meta directly.
+    if (!classified && ['commit', 'review'].includes(body.type)) {
+      const rawMeta = body.meta
+      classified = {
+        type: body.type,
+        authorName: body.authorName || 'GitHub Committer',
+        authorEmail: body.authorEmail || '',
+        meta:
+          typeof rawMeta === 'object' && rawMeta
+            ? sanitizeMeta(rawMeta, ['sha', 'note', 'url', 'title'])
+            : { note: typeof body.meta === 'string' && body.meta ? body.meta.slice(0, 500) : `GitHub Webhook Event: ${event}` }
       }
-    } else if (authorName) {
-      const nameLower = authorName.toLowerCase().trim()
-      const nameMatch = project.members.find((m) => {
-        const memberName = (m.user?.name || '').toLowerCase().trim()
-        return memberName === nameLower || memberName.includes(nameLower)
+    }
+
+    if (!classified) {
+      return res.status(200).json({ message: 'Webhook received but event requires no contribution recording.', skipped: true })
+    }
+
+    if (!WEIGHTS[classified.type]) {
+      return res.status(400).json({ error: `Unsupported contribution type from webhook: ${classified.type}` })
+    }
+
+    const enabledEvents = Array.isArray(project.webhookEvents)
+      ? project.webhookEvents
+      : WEBHOOK_EVENT_TYPES
+    const category = TYPE_TO_CATEGORY[classified.type]
+    if (category && !enabledEvents.includes(category)) {
+      return res.status(200).json({
+        message: `Webhook received but "${category}" events are disabled for this project.`,
+        skipped: true
       })
-      if (nameMatch?.user) {
-        userId = nameMatch.user._id || nameMatch.user
-      } else {
-        const userByName = await User.findOne({ name: new RegExp(`^${authorName.trim()}$`, 'i') })
-        if (userByName) userId = userByName._id
-      }
     }
 
-    const contribType = type || (event === 'pull_request' ? 'review' : 'commit')
-    const contribMeta = meta || {
-      commitMsg: `GitHub Webhook Event: ${event || 'push'}`,
-      authorName: authorName || 'GitHub Committer',
-      authorEmail: authorEmail || ''
-    }
-    const weight = contribType === 'commit' ? 4 : 3
+    const userId = await resolveUserForCommit(project, classified.authorEmail, classified.authorName)
 
-    const contrib = await Contribution.create({
-      project: projectId,
-      user: userId,
-      type: contribType,
-      weight,
-      meta: contribMeta
+    const isNumberedEvent = classified.meta?.number
+    const dedupeQuery = isNumberedEvent
+      ? { 'meta.number': classified.meta.number, 'meta.action': classified.meta.action }
+      : classified.meta?.sha
+        ? { 'meta.sha': classified.meta.sha }
+        : null
+
+    const result = await logContributionEvent({
+      projectId,
+      userId,
+      type: classified.type,
+      meta: classified.meta,
+      io: req.io,
+      enforceDailyCap: true,
+      dedupeQuery
     })
 
-    const populated = await contrib.populate('user', 'name email avatar statusText')
-
-    // Update daily snapshot for committer if member
-    if (userId) {
-      const todayStr = new Date().toISOString().split('T')[0]
-      await Snapshot.findOneAndUpdate(
-        { project: projectId, user: userId, date: new Date(todayStr) },
-        {
-          $inc: { totalCount: 1, totalWeight: weight },
-          $set: { project: projectId, user: userId, date: new Date(todayStr) }
-        },
-        { upsert: true, returnDocument: 'after' }
-      )
+    if (!result) {
+      return res.status(200).json({ message: 'Contribution skipped (duplicate or over daily cap).', skipped: true })
     }
 
-    req.io?.to(projectId).emit('new_contribution', populated)
-    res.status(201).json({ message: 'Webhook processed successfully', contribution: populated })
+    res.status(201).json({ message: 'Webhook processed successfully', contribution: result })
   } catch (err) {
-    res.status(500).json({ message: err.message })
+    next(err)
   }
 }

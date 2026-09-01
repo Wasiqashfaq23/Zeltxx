@@ -3,18 +3,12 @@ import { useAuth } from '../../context/AuthContext'
 import Loader from '../../components/ui/Loader'
 import { Card, CardContent } from '@/components/ui/card'
 import { Separator } from '@/components/ui/separator'
+import { googleAuthUrl } from '../../config'
 
-import ZeltxxLogo, { LogoIcon } from '../../components/ui/ZeltxxLogo'
+import { LogoIcon } from '../../components/ui/ZeltxxLogo'
 
 const Login = () => {
   const { user, loading } = useAuth()
-  const rawBackendUrl = (
-    import.meta.env.BACKEND_URL ||
-    import.meta.env.VITE_BACKEND_URL ||
-    import.meta.env.VITE_API_URL ||
-    'http://localhost:5001'
-  ).replace(/\/$/, '')
-  const googleAuthUrl = `${rawBackendUrl}/api/auth/google`
 
   if (loading) return <Loader />
   if (user) return <Navigate to="/dashboard" replace />

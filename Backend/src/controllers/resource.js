@@ -1,6 +1,8 @@
 import Resource from '../models/resource.js'
 import Project from '../models/project.js'
-import Contribution from '../models/contribution.js'
+import { logContributionEvent } from '../services/contribution.service.js'
+import { isMember } from '../services/membership.js'
+import { handleControllerError } from '../middleware/errorHandler.js'
 
 export const getResources = async (req, res) => {
   try {
@@ -19,7 +21,7 @@ export const getResources = async (req, res) => {
 
     res.json(resources)
   } catch (err) {
-    res.status(500).json({ message: err.message })
+    handleControllerError(res, err)
   }
 }
 
@@ -50,21 +52,20 @@ export const createResource = async (req, res) => {
 
     const populated = await resource.populate('addedBy', 'name email avatar')
 
-    // Auto-log file_upload contribution point
-    const contrib = await Contribution.create({
-      project: projectId,
-      user: req.user._id,
+    // Auto-log file_upload contribution point (daily capped, guarded path)
+    await logContributionEvent({
+      projectId,
+      userId: req.user._id,
       type: 'file_upload',
-      weight: 2,
-      meta: `Added resource: "${title}"`
+      meta: { note: `Added resource: "${title}"`, url: resource.url },
+      io: req.io,
+      enforceDailyCap: true
     })
-    const populatedContrib = await contrib.populate('user', 'name email avatar')
-    req.io?.to(projectId).emit('new_contribution', populatedContrib)
 
     req.io?.to(projectId).emit('resource_added', populated)
     res.status(201).json(populated)
   } catch (err) {
-    res.status(500).json({ message: err.message })
+    handleControllerError(res, err)
   }
 }
 
@@ -74,12 +75,17 @@ export const deleteResource = async (req, res) => {
     const resource = await Resource.findById(id)
     if (!resource) return res.status(404).json({ message: 'Resource not found' })
 
+    const project = await Project.findById(resource.project)
+    if (!isMember(project, req.user._id)) {
+      return res.status(403).json({ message: 'Not a member of this project' })
+    }
+
     const projectId = resource.project.toString()
     await Resource.findByIdAndDelete(id)
 
     req.io?.to(projectId).emit('resource_deleted', id)
     res.json({ message: 'Resource deleted' })
   } catch (err) {
-    res.status(500).json({ message: err.message })
+    handleControllerError(res, err)
   }
 }

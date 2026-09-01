@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Bell, LogOut, PanelLeftClose, PanelLeftOpen, Sun, Moon, User as UserIcon } from 'lucide-react'
+import { Bell, LogOut, PanelLeftClose, PanelLeftOpen, Sun, Moon, Search, User as UserIcon } from 'lucide-react'
 import { useAuth } from '../../context/AuthContext'
 import { useSocket } from '../../context/SocketContext'
 import { useSidebar } from './Layout'
@@ -23,7 +23,7 @@ const Navbar = () => {
   const navigate = useNavigate()
   const [notifications, setNotifications] = useState([])
   const [notifOpen, setNotifOpen] = useState(false)
-  const [loadingNotifs, setLoadingNotifs] = useState(false)
+  const [searchQuery, setSearchQuery] = useState('')
   const [theme, setTheme] = useState(() => localStorage.getItem('zeltxx_theme') || 'light')
 
   useEffect(() => {
@@ -39,6 +39,13 @@ const Navbar = () => {
 
   const toggleTheme = () => {
     setTheme((prev) => (prev === 'light' ? 'dark' : 'light'))
+  }
+
+  const handleSearchSubmit = (e) => {
+    e.preventDefault()
+    const q = searchQuery.trim()
+    if (q) navigate(`/search?q=${encodeURIComponent(q)}`)
+    setSearchQuery('')
   }
 
   const fetchNotifications = useCallback(() => {
@@ -73,8 +80,7 @@ const Navbar = () => {
   const handleNotifOpenChange = (isOpen) => {
     setNotifOpen(isOpen)
     if (isOpen) {
-      setLoadingNotifs(true)
-      fetchNotifications().finally(() => setLoadingNotifs(false))
+      fetchNotifications()
     }
   }
 
@@ -151,7 +157,36 @@ const Navbar = () => {
         <ZeltxxLogo iconSize="h-7 w-7" textSize="text-lg" />
       </div>
 
+      <div className="mx-3 hidden md:block flex-1 max-w-sm">
+        <form onSubmit={handleSearchSubmit} className="relative">
+          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" aria-hidden="true" />
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Search everything..."
+            className="w-full rounded-lg border border-slate-700 bg-slate-800/60 py-1.5 pl-9 pr-3 text-sm text-slate-100 placeholder-slate-500 outline-none transition-colors focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+          />
+        </form>
+      </div>
+
       <div className="flex items-center gap-2 sm:gap-3">
+        <button
+          type="button"
+          onClick={() => navigate('/search')}
+          aria-label="Open search"
+          className="md:hidden flex h-8 w-8 items-center justify-center rounded-lg text-slate-300 transition-colors hover:bg-slate-800 hover:text-white"
+        >
+          <Search className="h-5 w-5" aria-hidden="true" />
+        </button>
+        <button
+          type="button"
+          onClick={toggleTheme}
+          aria-label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+          className="hidden sm:flex h-8 w-8 items-center justify-center rounded-lg text-slate-300 transition-colors hover:bg-slate-800 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+        >
+          {theme === 'dark' ? <Sun className="h-5 w-5" aria-hidden="true" /> : <Moon className="h-5 w-5" aria-hidden="true" />}
+        </button>
         <DropdownMenu open={notifOpen} onOpenChange={handleNotifOpenChange}>
           <DropdownMenuTrigger
             aria-label={

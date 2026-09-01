@@ -1,5 +1,6 @@
 import Notification from '../models/notification.js'
 import Project from '../models/project.js'
+import { handleControllerError } from '../middleware/errorHandler.js'
 
 export const getNotifications = async (req, res) => {
   try {
@@ -15,7 +16,7 @@ export const getNotifications = async (req, res) => {
 
     res.json(safeNotifications)
   } catch (err) {
-    res.status(500).json({ message: err.message })
+    handleControllerError(res, err)
   }
 }
 
@@ -27,7 +28,7 @@ export const markAsRead = async (req, res) => {
     )
     res.json({ message: 'Marked as read' })
   } catch (err) {
-    res.status(500).json({ message: err.message })
+    handleControllerError(res, err)
   }
 }
 
@@ -39,7 +40,7 @@ export const markAllAsRead = async (req, res) => {
     )
     res.json({ message: 'All marked as read' })
   } catch (err) {
-    res.status(500).json({ message: err.message })
+    handleControllerError(res, err)
   }
 }
 
@@ -51,6 +52,13 @@ export const respondToInviteNotification = async (req, res) => {
     const notification = await Notification.findOne({ _id: id, user: req.user._id })
     if (!notification) return res.status(404).json({ message: 'Notification not found' })
 
+    if (notification.type !== 'project_invite') {
+      return res.status(400).json({ message: 'Only project invitations can be responded to' })
+    }
+    if (notification.status !== 'pending') {
+      return res.status(400).json({ message: 'This invitation has already been responded to' })
+    }
+
     if (action === 'accept') {
       const projectDoc = await Project.findById(notification.project)
       if (projectDoc) {
@@ -58,7 +66,7 @@ export const respondToInviteNotification = async (req, res) => {
           (m) => (m.user._id || m.user).toString() === req.user._id.toString()
         )
         if (!alreadyMember) {
-          projectDoc.members.push({ user: req.user._id, role: 'collaborator' })
+          projectDoc.members.push({ user: req.user._id, role: notification.role || 'collaborator' })
           await projectDoc.save()
         }
       }
@@ -77,6 +85,6 @@ export const respondToInviteNotification = async (req, res) => {
       return res.json({ message: 'Rejected invitation', notification: populated })
     }
   } catch (err) {
-    res.status(500).json({ message: err.message })
+    handleControllerError(res, err)
   }
 }

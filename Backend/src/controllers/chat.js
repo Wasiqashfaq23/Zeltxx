@@ -1,5 +1,6 @@
 import Chat from '../models/chat.js'
 import Project from '../models/project.js'
+import { handleControllerError } from '../middleware/errorHandler.js'
 
 export const getChatMessages = async (req, res) => {
   try {
@@ -19,7 +20,7 @@ export const getChatMessages = async (req, res) => {
 
     res.json(messages)
   } catch (err) {
-    res.status(500).json({ message: err.message })
+    handleControllerError(res, err)
   }
 }
 
@@ -51,6 +52,6 @@ export const sendChatMessage = async (req, res) => {
     req.io?.to(projectId).emit('new_chat_message', populated)
     res.status(201).json(populated)
   } catch (err) {
-    res.status(500).json({ message: err.message })
+    handleControllerError(res, err)
   }
 }
