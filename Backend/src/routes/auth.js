@@ -53,11 +53,21 @@ router.get('/google/callback',
     }
     next()
   },
-  passport.authenticate('google', {
-    failureRedirect: loginUrl('google_denied'),
-    session: false
-  }),
-  googleCallback
+  (req, res) => {
+    passport.authenticate('google', (err, user) => {
+      if (err) {
+        // Token-exchange or DB failure during verify. Never surface internals
+        // to the browser; log server-side and bounce to the login screen.
+        console.error('Google OAuth callback error:', err?.message || err)
+        return res.redirect(loginUrl('google_error'))
+      }
+      if (!user) {
+        return res.redirect(loginUrl('google_denied'))
+      }
+      req.user = user
+      return googleCallback(req, res)
+    })(req, res)
+  }
 )
 
 router.post('/logout', logout)
