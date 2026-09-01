@@ -1,6 +1,7 @@
 import jwt from 'jsonwebtoken'
 import User from '../models/user.js'
 import { handleControllerError } from '../middleware/errorHandler.js'
+import { getClientOrigin } from '../config/constants.js'
 
 const JWT_ISSUER = 'zeltxx-api'
 const JWT_AUDIENCE = 'zeltxx'
@@ -20,7 +21,8 @@ export const googleCallback = (req, res) => {
     maxAge: JWT_TTL_SECONDS * 1000
   })
 
-  res.redirect(process.env.CLIENT_URL + '/dashboard')
+  const clientOrigin = getClientOrigin()
+  res.redirect(clientOrigin ? `${clientOrigin}/dashboard` : '/')
 }
 
 export const logout = (req, res) => {

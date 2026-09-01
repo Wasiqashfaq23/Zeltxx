@@ -3,8 +3,14 @@ import express from 'express'
 import passport from 'passport'
 import { protect } from '../middleware/auth.js'
 import { googleCallback, logout, getMe, updateProfile } from '../controllers/auth.js'
+import { getClientOrigin } from '../config/constants.js'
 
 const router = express.Router()
+
+const loginUrl = (error) => {
+  const origin = getClientOrigin()
+  return origin ? `${origin}/login?error=${error}` : '/'
+}
 
 // Stateless CSRF protection for the OAuth flow: a random `state` is issued on
 // the /google route, stored in a short-lived httpOnly cookie, and verified
@@ -43,12 +49,12 @@ router.get('/google/callback',
     const expected = req.cookies?.[STATE_COOKIE]
     clearStateCookie(res)
     if (!expected || !req.query.state || !timingSafeEqualString(req.query.state, expected)) {
-      return res.redirect(`${process.env.CLIENT_URL}/login?error=invalid_oauth_state`)
+      return res.redirect(loginUrl('invalid_oauth_state'))
     }
     next()
   },
   passport.authenticate('google', {
-    failureRedirect: '/login',
+    failureRedirect: loginUrl('google_denied'),
     session: false
   }),
   googleCallback

@@ -52,3 +52,17 @@ export const isHttpUrl = (value) => {
     return false
   }
 }
+
+/**
+ * Resolves the frontend base origin used for OAuth redirects. A missing
+ * CLIENT_URL in production is a hard config error (redirects would render as
+ * "undefined/login"), so it is logged loudly and treated as empty. In dev it
+ * falls back to the Vite dev server.
+ */
+export const getClientOrigin = () => {
+  const fromEnv = (process.env.CLIENT_URL || '').trim().replace(/\/+$/, '')
+  if (fromEnv) return fromEnv
+  if (process.env.NODE_ENV !== 'production') return 'http://localhost:5173'
+  console.error('CLIENT_URL is not set. OAuth redirects will break in production.')
+  return ''
+}
