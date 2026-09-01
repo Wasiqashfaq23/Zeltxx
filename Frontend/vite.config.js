@@ -25,9 +25,9 @@ const cspPlugin = (backendUrl) => {
     .filter(Boolean)
     .join(' ')
   const prodImg = ["'self'", 'data:', 'blob:', apiOrigin, 'https:'].filter(Boolean).join(' ')
-  const prodCsp = `default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src ${prodImg}; connect-src ${prodConnect}; frame-src https://accounts.google.com; object-src 'none'; base-uri 'self'; frame-ancestors 'self'`
+  const prodCsp = `default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src ${prodImg}; connect-src ${prodConnect}; frame-src https://accounts.google.com; object-src 'none'; base-uri 'self'`
   const devCsp =
-    "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob: http://localhost:* https:; connect-src 'self' ws: wss: http://localhost:* https://accounts.google.com https://www.googleapis.com; frame-src https://accounts.google.com; object-src 'none'; base-uri 'self'; frame-ancestors 'self'"
+    "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob: http://localhost:* https:; connect-src 'self' ws: wss: http://localhost:* https://accounts.google.com https://www.googleapis.com; frame-src https://accounts.google.com; object-src 'none'; base-uri 'self'"
 
   return {
     name: 'inject-mode-csp',
