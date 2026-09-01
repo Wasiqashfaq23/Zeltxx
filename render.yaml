@@ -16,7 +16,10 @@ services:
     rootDir: Backend
     buildCommand: pnpm install --frozen-lockfile
     startCommand: node index.js
-    healthCheckPath: /health
+    # Liveness-only probe: Render pings it continuously, which keeps a free
+    # instance awake, and it never flakes on MongoDB availability (unlike /health,
+    # which returns 503 when the DB is down).
+    healthCheckPath: /health/live
     envVars:
       - key: NODE_ENV
         value: production

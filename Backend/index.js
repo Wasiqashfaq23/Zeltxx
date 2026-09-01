@@ -98,6 +98,18 @@ app.get(['/health', '/api/health'], (req, res) => {
   })
 })
 
+// Liveness probe: always 200 while the process responds, no DB dependency.
+// Used as Render's healthCheckPath so free instances stay awake (Render pings it
+// continuously) without flapping when Mongo is briefly unreachable.
+app.get(['/health/live', '/api/health/live'], (req, res) => {
+  res.status(200).json({
+    status: 'ok',
+    service: 'Zeltxx SaaS API',
+    timestamp: new Date().toISOString(),
+    uptime: process.uptime()
+  })
+})
+
 // Origin-based CSRF guard for every cookie-authenticated mutation.
 app.use('/api', csrfProtection(allowedOrigins))
 
