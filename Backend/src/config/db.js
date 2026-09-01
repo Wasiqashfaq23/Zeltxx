@@ -31,6 +31,19 @@ const connectWithRetry = async (attempt = 1) => {
     }
 }
 
-const connectToMongo = () => connectWithRetry();
+const connectToMongo = () => {
+    // Missing MONGO_URI isn't a transient failure — retrying just burns a
+    // deploy cycle. Fail loud and fast in production; in dev, boot anyway
+    // (the /health endpoint reports degraded) so the UI still loads.
+    if (!process.env.MONGO_URI) {
+        if (process.env.NODE_ENV === 'production') {
+            console.error("MONGO_URI is not set. Add it in the Render dashboard (Environment tab), then redeploy.")
+            process.exit(1)
+        }
+        console.warn("MONGO_URI is not set — skipping DB connection, API will run degraded.")
+        return
+    }
+    return connectWithRetry();
+};
 
 export { connectToMongo };
