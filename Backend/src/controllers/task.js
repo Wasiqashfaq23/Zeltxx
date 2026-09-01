@@ -24,6 +24,7 @@ export const getTasks = async (req, res) => {
     }
 
     const tasks = await Task.find({ project: projectId })
+      .limit(1000)
       .populate('assignedTo', 'name email avatar')
       .populate('createdBy', 'name email avatar')
       .populate('comments.user', 'name email avatar')

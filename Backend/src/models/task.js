@@ -111,6 +111,7 @@ const taskSchema = new Schema(
 
 taskSchema.index({ project: 1, status: 1 })
 taskSchema.index({ sprint: 1 })
+taskSchema.index({ dueDate: 1 })
 
 // Track when a task is completed so sprint burndown charts are accurate.
 taskSchema.pre('save', function markDoneAt(next) {

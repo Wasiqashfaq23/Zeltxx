@@ -29,6 +29,42 @@ const ALLOWED_MIME_TYPES = new Set([
   'application/vnd.openxmlformats-officedocument.presentationml.presentation'
 ])
 
+// Verify declared MIME type against actual file content instead of trusting
+// the client-supplied Content-Type. Text formats have no signature, so they
+// are sniffed for NUL bytes (binary content disguised as text is rejected).
+const startsWith = (buf, sig) => buf.length >= sig.length && sig.every((b, i) => buf[i] === b)
+
+const OLE2 = [0xd0, 0xcf, 0x11, 0xe0, 0xa1, 0xb1, 0x1a, 0xe1]
+const ZIP_SIG = [0x50, 0x4b, 0x03, 0x04]
+
+const isTextContent = (buf) => {
+  const head = buf.subarray(0, 1024)
+  for (let i = 0; i < head.length; i++) {
+    if (head[i] === 0) return false
+  }
+  return true
+}
+
+const MAGIC_VALIDATORS = {
+  'image/png': (b) => startsWith(b, [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]),
+  'image/jpeg': (b) => startsWith(b, [0xff, 0xd8, 0xff]),
+  'image/gif': (b) => startsWith(b, [0x47, 0x49, 0x46, 0x38]),
+  'image/webp': (b) => startsWith(b, [0x52, 0x49, 0x46, 0x46]) && b.length >= 12 && startsWith(b.subarray(8), [0x57, 0x45, 0x42, 0x50]),
+  'application/pdf': (b) => startsWith(b, [0x25, 0x50, 0x44, 0x46]),
+  'application/zip': (b) => startsWith(b, ZIP_SIG),
+  'application/gzip': (b) => startsWith(b, [0x1f, 0x8b]),
+  'application/x-7z-compressed': (b) => startsWith(b, [0x37, 0x7a, 0xbc, 0xaf, 0x27, 0x1c]),
+  'application/msword': (b) => startsWith(b, OLE2),
+  'application/vnd.ms-excel': (b) => startsWith(b, OLE2),
+  'application/vnd.ms-powerpoint': (b) => startsWith(b, OLE2),
+  'application/vnd.openxmlformats-officedocument.wordprocessingml.document': (b) => startsWith(b, ZIP_SIG),
+  'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': (b) => startsWith(b, ZIP_SIG),
+  'application/vnd.openxmlformats-officedocument.presentationml.presentation': (b) => startsWith(b, ZIP_SIG),
+  'text/plain': isTextContent,
+  'text/markdown': isTextContent,
+  'text/csv': isTextContent
+}
+
 async function verifyProjectMember(projectId, userId) {
   const project = await Project.findById(projectId)
   if (!project || !project.isActive) return false
@@ -66,6 +102,13 @@ export const uploadTaskAttachment = [
       if (!ALLOWED_MIME_TYPES.has(req.file.mimetype)) {
         return res.status(400).json({
           message: 'File type not allowed (images, PDF, text, and archives only).'
+        })
+      }
+
+      const magicOk = MAGIC_VALIDATORS[req.file.mimetype]?.(req.file.buffer)
+      if (!magicOk) {
+        return res.status(400).json({
+          message: 'Uploaded file content does not match its declared type.'
         })
       }
 

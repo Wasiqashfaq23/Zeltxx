@@ -25,7 +25,10 @@ const authenticateSocket = async (io, socket, next) => {
       return next(new Error('UNAUTHORIZED'))
     }
 
-    const decoded = jwt.verify(token, process.env.JWT_SECRET)
+    const decoded = jwt.verify(token, process.env.JWT_SECRET, {
+      issuer: 'zeltxx-api',
+      audience: 'zeltxx'
+    })
     if (!decoded?.id) return next(new Error('UNAUTHORIZED'))
 
     socket.userId = decoded.id
@@ -52,7 +55,9 @@ const isJoined = (socket, projectId) => socket.data.joinedProjects.has(String(pr
 export const initSocket = (httpServer, allowedOrigins = []) => {
   const io = new Server(httpServer, {
     cors: {
-      origin: allowedOrigins.length ? allowedOrigins : true,
+      // Fail closed: if no trusted origins are configured, deny rather than
+      // reflect arbitrary origins (reflecting would open credentialed CORS).
+      origin: allowedOrigins.length ? allowedOrigins : false,
       credentials: true
     }
   })

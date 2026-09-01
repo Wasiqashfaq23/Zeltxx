@@ -16,7 +16,7 @@ export const getSnapshots = async (req, res) => {
             return res.status(403).json({ message: "Not a member of this project" })
         }
 
-        const snapshots = await Snapshot.find({ project: projectId }).populate('user', 'name email avatar').sort({ date: -1 })
+        const snapshots = await Snapshot.find({ project: projectId }).limit(750).populate('user', 'name email avatar').sort({ date: -1 })
         res.status(200).json(snapshots)
     } catch (err) {
         handleControllerError(res, err)

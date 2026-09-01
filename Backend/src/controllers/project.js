@@ -54,7 +54,7 @@ export const createProject = async (req, res) => {
         const populated = await ProjectModel.findById(projectDoc._id).populate("members.user", "name email avatar")
         res.status(201).json(populated)
     } catch (error) {
-        res.status(400).json({ message: error.message })
+        handleControllerError(res, error)
     }
 }
 
@@ -63,7 +63,7 @@ export const getProjects = async (req, res) => {
         const projects = await ProjectModel.find({ "members.user": req.user._id, isActive: true }).populate("members.user", "name email avatar")
         res.status(200).json(projects)
     } catch (error) {
-        res.status(400).json({ message: error.message })
+        handleControllerError(res, error)
     }
 }
 

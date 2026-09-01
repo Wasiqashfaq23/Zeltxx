@@ -38,3 +38,17 @@ export const TASK_STATUSES = ['todo', 'in_progress', 'done']
 export const TASK_PRIORITIES = ['low', 'medium', 'high']
 
 export const RESOURCE_CATEGORIES = ['repo', 'docs', 'design', 'other']
+
+/**
+ * Accepts only http/https absolute URLs with a host. Blocks javascript:, data:,
+ * file:, protocol-relative (//), and otherwise dangerous schemes in user input.
+ */
+export const isHttpUrl = (value) => {
+  if (typeof value !== 'string' || value.length > 2083) return false
+  try {
+    const parsed = new URL(value)
+    return parsed.protocol === 'http:' || parsed.protocol === 'https:'
+  } catch {
+    return false
+  }
+}

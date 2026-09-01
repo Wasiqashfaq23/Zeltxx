@@ -79,10 +79,14 @@ app.use('/api/webhooks', express.json({ limit: '1mb', verify: (req, res, buf) =>
 app.use(express.json({ verify: (req, res, buf) => { req.rawBody = buf } }))
 app.use(cookieParser())
 
-// Serve locally-stored attachment fallbacks (Cloudinary is used when configured).
+// Serve locally-stored attachment fallbacks in development only. In production
+// uploads go to Cloudinary (see storage.service.js) and this route stays closed,
+// so nothing user-owned is ever world-readable via the API.
 const localUploadsDir = path.resolve(__dirname, 'uploads')
 fs.mkdirSync(localUploadsDir, { recursive: true })
-app.use('/uploads', express.static(localUploadsDir))
+if (process.env.NODE_ENV !== 'production') {
+  app.use('/uploads', express.static(localUploadsDir))
+}
 app.use(passport.initialize())
 app.use(securityHeaders)
 app.use((req, res, next) => { req.io = io; next() })

@@ -1,6 +1,8 @@
 import jwt from "jsonwebtoken";
 import User from "../models/user.js"
 
+const JWT_ISSUER = "zeltxx-api"
+const JWT_AUDIENCE = "zeltxx"
 
 export const protect = async (req, res, next) => {
     try {
@@ -9,7 +11,7 @@ export const protect = async (req, res, next) => {
             return res.status(401).json({ message: "Not authorized" })
         }
 
-            const decoded = jwt.verify(token, process.env.JWT_SECRET)
+            const decoded = jwt.verify(token, process.env.JWT_SECRET, { issuer: JWT_ISSUER, audience: JWT_AUDIENCE })
             req.user = await User.findById(decoded.id).select("-__v")
             if (!req.user) {
                 return res.status(401).json({ message: 'User not found' })

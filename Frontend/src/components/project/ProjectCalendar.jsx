@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { Calendar as CalendarIcon, Clock } from 'lucide-react'
 import { getTasks } from '../../api/task'
 import UserAvatar from '../ui/UserAvatar'
@@ -16,23 +16,24 @@ const ProjectCalendar = ({ projectId }) => {
       .finally(() => setLoading(false))
   }, [projectId])
 
+  // Grouping the full task list is O(n*4); memoize so it only re-runs when tasks change.
+  const GROUPS = useMemo(() => {
+    const todayStr = new Date().toISOString().split('T')[0]
+    const overdue = tasks.filter((t) => t.dueDate && t.dueDate.split('T')[0] < todayStr && t.status !== 'done')
+    const dueToday = tasks.filter((t) => t.dueDate && t.dueDate.split('T')[0] === todayStr)
+    const upcoming = tasks.filter((t) => t.dueDate && t.dueDate.split('T')[0] > todayStr)
+    const noDate = tasks.filter((t) => !t.dueDate)
+    return [
+      { id: 'overdue', title: 'Overdue Tasks', tasks: overdue, color: 'text-rose-600', bg: 'bg-rose-50' },
+      { id: 'today', title: 'Due Today', tasks: dueToday, color: 'text-amber-600', bg: 'bg-amber-50' },
+      { id: 'upcoming', title: 'Upcoming Deadlines', tasks: upcoming, color: 'text-indigo-600', bg: 'bg-indigo-50' },
+      { id: 'nodate', title: 'Unscheduled Tasks', tasks: noDate, color: 'text-gray-600', bg: 'bg-gray-50' }
+    ]
+  }, [tasks])
+
   if (loading) {
     return <div className="py-8 text-center text-sm text-[#9ca3af]">Loading calendar...</div>
   }
-
-  const todayStr = new Date().toISOString().split('T')[0]
-
-  const overdue = tasks.filter((t) => t.dueDate && t.dueDate.split('T')[0] < todayStr && t.status !== 'done')
-  const dueToday = tasks.filter((t) => t.dueDate && t.dueDate.split('T')[0] === todayStr)
-  const upcoming = tasks.filter((t) => t.dueDate && t.dueDate.split('T')[0] > todayStr)
-  const noDate = tasks.filter((t) => !t.dueDate)
-
-  const GROUPS = [
-    { id: 'overdue', title: 'Overdue Tasks', tasks: overdue, color: 'text-rose-600', bg: 'bg-rose-50' },
-    { id: 'today', title: 'Due Today', tasks: dueToday, color: 'text-amber-600', bg: 'bg-amber-50' },
-    { id: 'upcoming', title: 'Upcoming Deadlines', tasks: upcoming, color: 'text-indigo-600', bg: 'bg-indigo-50' },
-    { id: 'nodate', title: 'Unscheduled Tasks', tasks: noDate, color: 'text-gray-600', bg: 'bg-gray-50' }
-  ]
 
   return (
     <div className="space-y-6">

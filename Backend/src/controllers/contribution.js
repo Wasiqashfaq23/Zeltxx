@@ -46,16 +46,30 @@ const computeStreaks = (dateKeys) => {
 const buildSummaryAggregation = (match) =>
   Contribution.aggregate([
     { $match: match },
+    // Pre-aggregate per (user, type) so the summary only ever holds
+    // (users × types) documents in memory instead of every contribution row.
     {
       $group: {
         _id: {
           user: '$user',
           authorEmail: '$meta.authorEmail',
-          authorName: '$meta.authorName'
+          authorName: '$meta.authorName',
+          type: '$type'
         },
-        totalCount: { $sum: 1 },
-        totalWeight: { $sum: '$weight' },
-        breakdown: { $push: '$type' }
+        countByType: { $sum: 1 },
+        weightByType: { $sum: '$weight' }
+      }
+    },
+    {
+      $group: {
+        _id: {
+          user: '$_id.user',
+          authorEmail: '$_id.authorEmail',
+          authorName: '$_id.authorName'
+        },
+        totalCount: { $sum: '$countByType' },
+        totalWeight: { $sum: '$weightByType' },
+        typeCounts: { $push: { k: '$_id.type', v: '$countByType' } }
       }
     },
     {
@@ -68,6 +82,10 @@ const buildSummaryAggregation = (match) =>
     }
   ])
 
+// Fans typeCounts back out into the flat `breakdown` array the charts expect.
+const expandBreakdown = (typeCounts) =>
+  (typeCounts || []).flatMap(({ k, v }) => Array.from({ length: v }, () => k))
+
 const mapRawSummary = (rawSummary) =>
   rawSummary.map((item) => {
     const registeredUser = item.userDoc && item.userDoc[0]
@@ -78,7 +96,7 @@ const mapRawSummary = (rawSummary) =>
         user: registeredUser,
         totalCount: item.totalCount,
         totalWeight: item.totalWeight,
-        breakdown: item.breakdown
+        breakdown: expandBreakdown(item.typeCounts)
       }
     }
     return {
@@ -92,7 +110,7 @@ const mapRawSummary = (rawSummary) =>
       isExternal: true,
       totalCount: item.totalCount,
       totalWeight: item.totalWeight,
-      breakdown: item.breakdown
+      breakdown: expandBreakdown(item.typeCounts)
     }
   })
 
@@ -179,7 +197,7 @@ export const getContribution = async (req, res) => {
       hasMore: offset + contributions.length < total
     })
   } catch (err) {
-    res.status(400).json({ message: err.message })
+    handleControllerError(res, err)
   }
 }
 
@@ -200,7 +218,7 @@ export const getProjectSummary = async (req, res) => {
 
     res.json(mapRawSummary(rawSummary))
   } catch (error) {
-    res.status(400).json({ message: error.message })
+    handleControllerError(res, error)
   }
 }
 
@@ -219,7 +237,7 @@ export const getWorkspaceLeaderboard = async (req, res) => {
     const rawSummary = await buildSummaryAggregation(match)
     res.json(mapRawSummary(rawSummary))
   } catch (error) {
-    res.status(400).json({ message: error.message })
+    handleControllerError(res, error)
   }
 }
 
@@ -253,7 +271,7 @@ export const getProjectStreaks = async (req, res) => {
 
     res.json(streaks)
   } catch (error) {
-    res.status(400).json({ message: error.message })
+    handleControllerError(res, error)
   }
 }
 

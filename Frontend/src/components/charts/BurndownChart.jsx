@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, memo } from 'react'
 import { LineChart, Line, XAxis, YAxis, Tooltip, CartesianGrid, Legend, ResponsiveContainer } from 'recharts'
 import { getBurndown } from '../../api/sprints'
 
@@ -52,4 +52,4 @@ const BurndownChart = ({ sprintId }) => {
   )
 }
 
-export default BurndownChart
+export default memo(BurndownChart)

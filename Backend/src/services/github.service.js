@@ -94,52 +94,105 @@ const formatCommitMeta = (item, owner, repo) => {
  */
 export const syncCommitsIntoProject = async ({ project, commits, owner, repo, io }) => {
   const projectId = project._id.toString()
-  let syncedCount = 0
-  const syncedContribs = []
 
-  for (const item of commits) {
-    const meta = formatCommitMeta(item, owner, repo)
-    const authorObj = item.commit?.author || item.commit?.committer || null
-    const commitDate = authorObj?.date ? new Date(authorObj.date) : new Date()
+  if (!commits.length) return { syncedCount: 0, commits: [] }
 
-    const committerUserId = await resolveUserForCommit(project, meta.authorEmail, meta.authorName)
-
-    const existing = await Contribution.findOne({
-      project: projectId,
-      'meta.sha': meta.sha
+  // Resolve committers for the whole batch first (independent lookups run in parallel).
+  const resolved = await Promise.all(
+    commits.map((item) => {
+      const meta = formatCommitMeta(item, owner, repo)
+      const authorObj = item.commit?.author || item.commit?.committer || null
+      const rawDate = authorObj?.date ? new Date(authorObj.date) : new Date()
+      const commitDate = rawDate <= new Date() ? rawDate : new Date()
+      return resolveUserForCommit(project, meta.authorEmail, meta.authorName).then((userId) => ({
+        meta,
+        userId,
+        commitDate
+      }))
     })
+  )
 
+  // Single batch read of already-synced SHAs instead of one query per commit.
+  const existingDocs = await Contribution.find({
+    project: projectId,
+    'meta.sha': { $in: resolved.map((r) => r.meta.sha) }
+  })
+  const existingBySha = new Map(existingDocs.map((doc) => [doc.meta.sha, doc]))
+
+  const updateOps = []
+  const newDocs = []
+  for (const { meta, userId, commitDate } of resolved) {
+    const existing = existingBySha.get(meta.sha)
     if (existing) {
       const currentUserIdStr = existing.user ? existing.user.toString() : null
-      const correctUserIdStr = committerUserId || null
-
+      const correctUserIdStr = userId || null
       if (currentUserIdStr !== correctUserIdStr) {
-        existing.user = committerUserId
-        await existing.save()
-        const populated = await existing.populate('user', 'name email avatar statusText')
+        updateOps.push({
+          updateOne: {
+            filter: { _id: existing._id },
+            update: { $set: { user: userId ?? null } }
+          }
+        })
+      }
+      continue
+    }
+    newDocs.push({
+      project: projectId,
+      user: userId || null,
+      type: 'commit',
+      weight: 4,
+      meta,
+      createdAt: commitDate
+    })
+  }
+
+  // Bulk-write re-attributions and insert new commits in single round-trips.
+  if (updateOps.length) await Contribution.bulkWrite(updateOps)
+  let inserted = []
+  if (newDocs.length) inserted = await Contribution.insertMany(newDocs)
+
+  // One fetch populates every affected contribution for socket broadcasts.
+  const affectedIds = [
+    ...updateOps.map((op) => op.updateOne.filter._id),
+    ...inserted.map((doc) => doc._id)
+  ]
+  let affectedDocs = []
+  if (affectedIds.length) {
+    affectedDocs = await Contribution.find({ _id: { $in: affectedIds } })
+      .populate('user', 'name email avatar statusText')
+  }
+  const docsById = new Map(affectedDocs.map((doc) => [doc._id.toString(), doc]))
+  const updateIdSet = new Set(updateOps.map((op) => op.updateOne.filter._id.toString()))
+
+  let syncedCount = 0
+  const syncedContribs = []
+  for (const { meta } of resolved) {
+    const existing = existingBySha.get(meta.sha)
+    if (existing) {
+      const populated = docsById.get(existing._id.toString())
+      if (populated && updateIdSet.has(existing._id.toString())) {
         syncedContribs.push(populated)
         syncedCount++
         io?.to(projectId).emit('contribution_updated', populated)
       }
       continue
     }
-
-    const contribution = await Contribution.create({
-      project: projectId,
-      user: committerUserId || null,
-      type: 'commit',
-      weight: 4,
-      meta,
-      createdAt: commitDate <= new Date() ? commitDate : new Date()
-    })
-    const populated = await contribution.populate('user', 'name email avatar statusText')
-    syncedContribs.push(populated)
-    syncedCount++
-    io?.to(projectId).emit('new_contribution', populated)
-
-    if (committerUserId) {
-      await upsertDaySnapshot({ projectId, userId: committerUserId, date: commitDate, weight: 4 })
+    const createdDoc = newDocs.find((d) => d.meta?.sha === meta.sha)
+    const populated = createdDoc ? docsById.get(createdDoc._id.toString()) : undefined
+    if (populated) {
+      syncedContribs.push(populated)
+      syncedCount++
+      io?.to(projectId).emit('new_contribution', populated)
     }
+  }
+
+  // Snapshot increments for any newly created commits run in parallel.
+  if (newDocs.length) {
+    await Promise.all(
+      newDocs
+        .filter((doc) => doc.user)
+        .map((doc) => upsertDaySnapshot({ projectId, userId: doc.user, date: doc.createdAt, weight: 4 }))
+    )
   }
 
   return { syncedCount, commits: syncedContribs }

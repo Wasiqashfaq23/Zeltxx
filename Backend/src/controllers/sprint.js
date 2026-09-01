@@ -24,7 +24,7 @@ export const getSprints = async (req, res) => {
     }
 
     const [sprints, counts] = await Promise.all([
-      Sprint.find({ project: projectId }).sort({ startDate: -1 }),
+      Sprint.find({ project: projectId }).sort({ startDate: -1 }).limit(100),
       Task.aggregate([
         { $match: { project: projectId, sprint: { $ne: null } } },
         {

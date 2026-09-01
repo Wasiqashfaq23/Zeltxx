@@ -6,10 +6,10 @@ import nodemailer from 'nodemailer'
 const getTransporter = () => {
   const host = process.env.SMTP_HOST || 'smtp.gmail.com'
   const port = parseInt(process.env.SMTP_PORT || '465', 10)
-  const user = process.env.SMTP_USER || 'wasiqashfaq123@gmail.com'
+  const user = process.env.SMTP_USER || ''
   const pass = process.env.SMTP_PASS || ''
 
-  if (!pass) return null
+  if (!pass || !user) return null
 
   // Optimized for Gmail SSL / TLS
   if (host.includes('gmail')) {
@@ -39,7 +39,7 @@ const getTransporter = () => {
  * Sends an email using Nodemailer or logs formatted email preview
  */
 export const sendEmail = async ({ to, subject, html, text }) => {
-  const user = process.env.SMTP_USER || 'wasiqashfaq123@gmail.com'
+  const user = process.env.SMTP_USER || ''
   const pass = process.env.SMTP_PASS || ''
   const from = process.env.SMTP_FROM || `"Zeltxx Platform" <${user}>`
 
@@ -91,7 +91,7 @@ export const escapeHtml = (value) =>
  * All interpolated values are HTML-escaped (defense against injection).
  */
 export const buildInviteEmailHtml = ({ projectName, inviteUrl, inviterName }) => {
-  const user = process.env.SMTP_USER || 'wasiqashfaq123@gmail.com'
+  const sender = process.env.SMTP_USER || ''
   const eName = escapeHtml(projectName)
   const eInviter = escapeHtml(inviterName)
   const eUrl = escapeHtml(inviteUrl)
@@ -108,7 +108,7 @@ export const buildInviteEmailHtml = ({ projectName, inviteUrl, inviterName }) =>
           </a>
         </div>
         <p style="color: #94a3b8; font-size: 12px; margin-bottom: 0;">
-          Sent via Zeltxx Collaboration Platform (${escapeHtml(user)})
+          Sent via Zeltxx Collaboration Platform${sender ? ` (${escapeHtml(sender)})` : ''}
         </p>
       </div>
     </div>

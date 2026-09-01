@@ -1,5 +1,5 @@
 import path from 'path'
-import fs from 'fs'
+import { promises as fs } from 'fs'
 import { randomUUID } from 'crypto'
 import { fileURLToPath } from 'url'
 
@@ -40,14 +40,20 @@ export const uploadToStorage = async ({ buffer, filename }) => {
     }
   }
 
-  // Local fallback: save under Backend/uploads, served via express.static.
+  // Production must never fall back to the ephemeral local disk: files would be
+  // lost on restart and served from an unauthenticated static route. Fail closed.
+  if (process.env.NODE_ENV === 'production') {
+    throw new Error('CLOUDINARY_NOT_CONFIGURED: object storage is required in production')
+  }
+
+  // Local fallback: save under Backend/uploads, served via express.static (dev only).
   const uploadsDir = path.resolve(__dirname, '..', '..', 'uploads')
-  fs.mkdirSync(uploadsDir, { recursive: true })
+  await fs.mkdir(uploadsDir, { recursive: true })
   const safeName = String(filename || 'file')
     .replace(/[^a-zA-Z0-9._-]/g, '_')
     .slice(-80)
   const stored = `${randomUUID()}-${safeName}`
-  fs.writeFileSync(path.join(uploadsDir, stored), buffer)
+  await fs.writeFile(path.join(uploadsDir, stored), buffer)
   return {
     url: `/uploads/${stored}`,
     publicId: null
@@ -66,7 +72,9 @@ export const deleteFromStorage = async ({ publicId, url }) => {
     return
   }
   if (url && url.startsWith('/uploads/')) {
-    const filePath = path.resolve(__dirname, '..', '..', 'uploads', path.basename(url))
-    fs.rmSync(filePath, { force: true })
+    // Local files only exist in development; in production an upload on this
+    // path could not be created in the first place, so nothing to delete.
+    const filePath = path.join(__dirname, '..', '..', 'uploads', path.basename(url))
+    await fs.rm(filePath, { force: true })
   }
 }

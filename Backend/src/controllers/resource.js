@@ -2,6 +2,7 @@ import Resource from '../models/resource.js'
 import Project from '../models/project.js'
 import { logContributionEvent } from '../services/contribution.service.js'
 import { isMember } from '../services/membership.js'
+import { isHttpUrl } from '../config/constants.js'
 import { handleControllerError } from '../middleware/errorHandler.js'
 
 export const getResources = async (req, res) => {
@@ -16,6 +17,7 @@ export const getResources = async (req, res) => {
     if (!isMember) return res.status(403).json({ message: 'Not a member of this project' })
 
     const resources = await Resource.find({ project: projectId })
+      .limit(500)
       .populate('addedBy', 'name email avatar')
       .sort({ createdAt: -1 })
 
@@ -32,6 +34,10 @@ export const createResource = async (req, res) => {
 
     if (!title || !url) {
       return res.status(400).json({ message: 'Title and URL are required' })
+    }
+
+    if (!isHttpUrl(url)) {
+      return res.status(400).json({ message: 'URL must be an absolute http/https link' })
     }
 
     const project = await Project.findById(projectId)

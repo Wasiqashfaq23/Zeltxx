@@ -2,18 +2,22 @@ import jwt from 'jsonwebtoken'
 import User from '../models/user.js'
 import { handleControllerError } from '../middleware/errorHandler.js'
 
+const JWT_ISSUER = 'zeltxx-api'
+const JWT_AUDIENCE = 'zeltxx'
+const JWT_TTL_SECONDS = 3 * 24 * 60 * 60 // 3 days
+
 export const googleCallback = (req, res) => {
   const token = jwt.sign(
     { id: req.user._id },
     process.env.JWT_SECRET,
-    { expiresIn: '7d' }
+    { expiresIn: JWT_TTL_SECONDS, issuer: JWT_ISSUER, audience: JWT_AUDIENCE }
   )
 
   res.cookie('token', token, {
     httpOnly: true,
     secure: true,
     sameSite: 'none',
-    maxAge: 7 * 24 * 60 * 60 * 1000
+    maxAge: JWT_TTL_SECONDS * 1000
   })
 
   res.redirect(process.env.CLIENT_URL + '/dashboard')

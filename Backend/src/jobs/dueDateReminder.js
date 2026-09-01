@@ -21,23 +21,29 @@ export const startDueDateReminders = (io) => {
       }).populate('assignedTo', 'name email')
 
       let sent = 0
-      for (const task of tasks) {
-        const dueLabel = task.dueDate.toLocaleString(undefined, {
-          weekday: 'short',
-          month: 'short',
-          day: 'numeric',
-          hour: '2-digit',
-          minute: '2-digit'
-        })
-        await createNotification(io, {
-          userId: task.assignedTo._id,
-          type: 'due_date',
-          message: `Task "${task.title}" is due ${dueLabel}`,
-          project: task.project
-        })
-        task.lastDueReminderDateKey = dayKey
-        await task.save()
-        sent += 1
+      if (tasks.length) {
+        const dayKeyAtRun = dayKey
+        await Promise.all(
+          tasks.map((task) =>
+            createNotification(io, {
+              userId: task.assignedTo._id,
+              type: 'due_date',
+              message: `Task "${task.title}" is due ${task.dueDate.toLocaleString(undefined, {
+                weekday: 'short',
+                month: 'short',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+              })}`,
+              project: task.project
+            })
+          )
+        )
+        await Task.updateMany(
+          { _id: { $in: tasks.map((task) => task._id) } },
+          { $set: { lastDueReminderDateKey: dayKeyAtRun } }
+        )
+        sent = tasks.length
       }
       if (sent > 0) console.log(`Due-date reminders sent for ${sent} task(s)`)
     } catch (err) {

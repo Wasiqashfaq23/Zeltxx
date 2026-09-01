@@ -1,3 +1,4 @@
+import { useMemo, memo } from 'react'
 import { PieChart, Pie, Tooltip, Cell, Legend, ResponsiveContainer } from 'recharts'
 import { breakdownToPieData } from '../../utils/chartHelpers'
 
@@ -13,7 +14,7 @@ const tooltipStyle = {
 }
 
 const ContribTypeDonut = ({ breakdown }) => {
-  const data = breakdownToPieData(breakdown)
+  const data = useMemo(() => breakdownToPieData(breakdown), [breakdown])
 
   if (!data.length) {
     return (
@@ -49,4 +50,4 @@ const ContribTypeDonut = ({ breakdown }) => {
   )
 }
 
-export default ContribTypeDonut
+export default memo(ContribTypeDonut)

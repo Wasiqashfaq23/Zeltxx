@@ -15,22 +15,26 @@ export const notifyMentions = async ({ io, text, members, actorName, projectId, 
   const handles = extractMentions(text).map((h) => h.toLowerCase())
   if (!handles.length) return 0
 
-  let sent = 0
-  for (const member of members) {
+  const matched = members.filter((member) => {
     const user = member.user
-    if (!user || !user._id) continue
+    if (!user || !user._id) return false
     const name = String(user.name || '').toLowerCase()
     const email = String(user.email || '').toLowerCase()
+    return handles.some((handle) => name === handle || email === handle || (email && email.startsWith(handle)))
+  })
 
-    if (handles.some((handle) => name === handle || email === handle || (email && email.startsWith(handle)))) {
-      await createNotification(io, {
-        userId: user._id,
-        type: 'mention',
-        message: `${actorName || 'Someone'} mentioned you in ${context}`,
-        project: projectId
-      })
-      sent += 1
-    }
-  }
+  const sent = (
+    await Promise.all(
+      matched.map((member) =>
+        createNotification(io, {
+          userId: member.user._id,
+          type: 'mention',
+          message: `${actorName || 'Someone'} mentioned you in ${context}`,
+          project: projectId
+        })
+      )
+    )
+  ).length
+
   return sent
 }

@@ -31,4 +31,6 @@ const resourceSchema = new Schema(
   { timestamps: true }
 )
 
+resourceSchema.index({ project: 1, createdAt: -1 })
+
 export default mongoose.model('Resource', resourceSchema)

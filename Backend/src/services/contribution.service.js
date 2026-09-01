@@ -1,5 +1,5 @@
 import Contribution, { WEIGHTS } from '../models/contribution.js'
-import { DAILY_CAPS } from '../config/constants.js'
+import { DAILY_CAPS, isHttpUrl } from '../config/constants.js'
 import { upsertDaySnapshot } from './snapshot.service.js'
 import { logActivity } from './activity.service.js'
 
@@ -11,7 +11,10 @@ export const sanitizeMeta = (meta, allowed = ['note', 'url', 'title']) => {
   if (!meta || typeof meta !== 'object' || Array.isArray(meta)) return {}
   const cleaned = {}
   for (const key of allowed) {
-    if (typeof meta[key] === 'string') cleaned[key] = meta[key].slice(0, 500)
+    if (typeof meta[key] === 'string') {
+      if (key === 'url' && !isHttpUrl(meta[key])) continue
+      cleaned[key] = meta[key].slice(0, 500)
+    }
   }
   return cleaned
 }

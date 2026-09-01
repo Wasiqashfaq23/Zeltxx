@@ -1,6 +1,7 @@
 import Project from '../models/project.js'
 import { parseRepoOwnerAndName, fetchCommitBatch, syncCommitsIntoProject } from '../services/github.service.js'
 import { isMember } from '../services/membership.js'
+import { handleControllerError } from '../middleware/errorHandler.js'
 
 /**
  * Internal helper used on project create/update for background auto-sync.
@@ -51,6 +52,6 @@ export const syncGitHubCommits = async (req, res, _next) => {
     })
   } catch (err) {
     console.error('GitHub Sync Error:', err)
-    return res.status(err.status || 500).json({ message: err.message || 'Failed to sync GitHub commits' })
+    return handleControllerError(res, err)
   }
 }
