@@ -1,176 +1,253 @@
-# 🚀 Zeltxx — Real-Time Developer Collaboration & Gamified Productivity Platform
+# Zeltxx
 
-**Zeltxx** is a production-ready, full-stack real-time collaboration and project management SaaS platform engineered for modern software development teams. It combines live presence tracking, interactive Kanban task boards, real-time instant messaging, collaborative scratchpad notes, direct GitHub REST API commit syncing, GitHub webhook automation, Gmail SMTP email notifications, gamified contribution scoring, and high-contrast dark-mode analytics.
+**Real-time developer collaboration and gamified productivity platform.**
 
----
-
-## 🌟 Comprehensive System Overview
-
-Zeltxx solves developer workflow fragmentation by bringing task tracking, real-time communication, GitHub activity syncing, and team gamification into a single, unified workspace.
-
-```
-┌─────────────────────────────────────────────────────────────────────────────────────────────────┐
-│                                    ZELTXX SaaS PLATFORM                                         │
-├───────────────────────────────────┬───────────────────────────────────┬─────────────────────────┤
-│    COLLABORATIVE WORKSPACE        │       ADMINISTRATION & SETUP      │   GAMIFIED ANALYTICS    │
-│  - Interactive Kanban Task Board  │  - Project Details & Metadata     │  - 30-Day Heatmap Grid  │
-│  - Real-Time Team Chat (Socket)   │  - Gmail SMTP Member Invites      │  - Velocity Area Chart  │
-│  - Live Scratchpad Co-Editor      │  - Member Role Authorization      │  - Category Donut Chart │
-│  - GitHub Commit REST API Sync    │  - Project Cascade Deletion       │  - Team Leaderboard     │
-│  - Activity Feed & Reactions      │  - Resource Links & Spec Hub      │  - CSV / Markdown Export│
-└───────────────────────────────────┴───────────────────────────────────┴─────────────────────────┘
-```
+> [Live Demo](https://zeltxx.vercel.app)
 
 ---
 
-## ✨ Key Platform Modules
+## Overview
 
-### 🐙 1. GitHub Integration & Commit Automation
-- **Direct GitHub REST API Commit Sync**: Connect any public or private repository (`owner/repo` or full GitHub URL). Zeltxx queries the official GitHub REST API (`POST /api/github/sync/:projectId`) to fetch live commits (SHAs, commit messages, author names, and GitHub commit URLs), auto-logging score points onto your team leaderboard.
-- **GitHub Personal Access Token (PAT)**: Input an optional PAT to sync private repositories or bypass GitHub's unauthenticated 60 req/hr rate limit.
-- **GitHub Webhook Payload Listener & Simulator**: Server endpoint (`POST /api/webhooks/github/:projectId`) and in-app developer simulator to trigger automated GitHub push/PR event logging.
-
-### ⚡ 2. Real-Time WebSocket Engine (Socket.IO)
-- **Live Room Presence**: Tracks online members per project room with live status indicators (*"3 Online Now"*) and online member rings.
-- **Live Typing Feedback**: Displays *"User is typing..."* banners when teammates write chat messages or edit shared notes.
-- **Interactive Kanban Task Board**: 3-column task board (`To Do`, `In Progress`, `Done`) synchronized live across clients. Completing a task auto-logs contribution points (+2 pts).
-- **Task Detail View & Subtasks**: Subtask checklists (`[x] Frontend API`, `[ ] Unit tests`) and task-specific comment threads.
-- **Live Project Discussion**: Real-time team chat room with timestamped message bubbles and user avatars.
-- **Collaborative Live Scratchpad**: Real-time co-editing notes editor with debounced auto-save (*"Saved live"*).
-- **Interactive Emoji Reactions**: Real-time reactions (👍, ❤️, 🚀, 🔥, 👏) on activity feed items.
-
-### 📧 3. Gmail SMTP Email Dispatcher (Nodemailer)
-- **Email Invitations**: Automatically sends formatted HTML invitation emails (`wasiqashfaq123@gmail.com`) when admins invite members to project workspaces.
-- **Console Simulation Fallback**: Gracefully logs formatted terminal dispatches when SMTP app passwords are not provided in local dev environments.
-
-### 📊 4. Gamified Scoring Engine & Analytics
-- **30-Day Contribution Heatmap**: GitHub-style activity grid visualizing team contribution intensity.
-- **Gamified Scoring Engine**: Tracks Commits (4 pts), Code Reviews (3 pts), Task Completion (2 pts), File Uploads (2 pts), and Comments (1 pt).
-- **Personal & Team Dashboards**: Score cards, 14-day area charts, contribution breakdown donuts, and team leaderboards.
-- **1-Click Data Exports**: Export personal statistics, team leaderboards to CSV, and full project summaries to Markdown (`.md`).
-
-### 🎨 5. Modern Permanent Dark Theme UI/UX
-- **Design System**: Sleek `#090d16` deep dark slate background, `#0f172a` cards, `#1e293b` borders, and high-contrast text (`#f8fafc`).
-- **Official Zeltxx Logo**: Vector SVG brand icon featuring corner focus brackets with a center `#4ade80` green cross.
-- **Navigation Usability**: Dual-action project cards allowing seamless switching between **Open Workspace** (Kanban & Chat) and **Admin Settings** (Invites & Roles).
+Zeltxx is a full-stack SaaS platform that unifies task tracking, team communication, GitHub activity syncing, and contribution gamification into a single workspace. It combines an interactive Kanban board, live chat, collaborative notes, GitHub REST API commit syncing, webhook automation, and analytics-driven scoring — all backed by a production-hardened Node.js API and real-time Socket.IO engine.
 
 ---
 
-## 🛠️ Technology Stack
+## Tech Stack
 
-- **Frontend**: React 19, Vite 8, TailwindCSS 4, Lucide Icons, Recharts, Base UI / Radix UI Primitives, Socket.IO Client.
-- **Backend**: Node.js, Express 5, MongoDB (Mongoose 9), Socket.IO 4, Nodemailer 6, Passport.js (Google OAuth 2.0), JWT.
+| Layer | Technologies |
+|---|---|
+| **Frontend** | React 19, Vite 8, React Router 7, Tailwind CSS 4, Recharts, Socket.IO Client, Axios, shadcn/ui |
+| **Backend** | Node.js, Express 5, Mongoose 9, Socket.IO 4, Passport.js (Google OAuth 2.0), Nodemailer, node-cron |
+| **Database** | MongoDB |
+| **Storage** | Cloudinary (production), local filesystem (dev) |
+| **Auth** | Google OAuth 2.0, JWT (httpOnly cookies, 3-day expiry) |
+| **Deployment** | Render (backend), Vercel (frontend), Nginx reverse proxy, PM2 |
+| **Tooling** | pnpm, ESLint, Prettier, OxLint |
 
 ---
 
-## 🚀 Environment Setup & CLI Commands
+## Features
 
-### 1. Environment Configuration
+### Kanban Task Board & Sprint Planning
 
-#### Backend (`Backend/.env`)
-```env
-PORT=5001
-MONGO_URI=mongodb://127.0.0.1:27017/zeltxx
-JWT_SECRET=your_jwt_secret_key
-CLIENT_URL=http://localhost:5173
-GOOGLE_CLIENT_ID=your_google_client_id
-GOOGLE_CLIENT_SECRET=your_google_client_secret
+- Three-column drag-and-drop board: **To Do**, **In Progress**, **Done**
+- Sprint management with name, goal, and date range
+- Sprint burndown chart (ideal vs. remaining line)
+- Task priorities (low / medium / high), assignees, due dates
+- Subtask checklists, task comments with emoji reactions
+- Blocked-by dependency tracking (prevents completing blocked tasks)
+- Recurring tasks (daily, weekly, monthly) with automatic next-occurrence spawning
+- Time tracking per task (start/stop timer, manual entries, per-member history)
+- File attachments (Cloudinary-backed, MIME-validated, 10 MB cap)
+- Due-date reminders (hourly cron job notifies assignees within 24 hours)
 
-# SMTP Mailer Configuration
-SMTP_HOST=smtp.gmail.com
-SMTP_PORT=587
-SMTP_USER=wasiqashfaq123@gmail.com
-SMTP_PASS=your_app_password
-SMTP_FROM="Zeltxx Platform" <wasiqashfaq123@gmail.com>
+### Real-Time Collaboration
+
+- **Live presence** — online member indicators per project room
+- **Team chat** — timestamped messages with typing indicators
+- **Collaborative notes** — real-time co-editing scratchpad with debounced auto-save
+- **Live task board** — task create/update/delete events broadcast across all clients
+- **@mentions** — notifies mentioned users in task comments and project notes
+- **Live notifications** — invite, due-date, and mention alerts pushed via Socket.IO
+
+### GitHub Integration
+
+- **REST API commit sync** — fetches live commits (SHA, author, message, URL) from any public or private repo via GitHub REST API
+- **Personal Access Token** support for private repos and higher rate limits
+- **Webhook receiver** — processes `push`, `pull_request`, `issues`, and `pull_request_review` events
+- **HMAC-SHA256 verification** — `crypto.timingSafeEqual` on `X-Hub-Signature-256`; fails closed
+- **Per-project event toggles** — admins enable/disable specific webhook event categories
+- **In-app webhook simulator** — constructs realistic GitHub payloads, computes HMAC signatures in-browser, and posts test events
+- **Idempotent sync** — existing SHAs are re-attributed; duplicates are skipped
+- **Committer resolution** — matches GitHub authors to platform users by email/name (exact match only; no regex from untrusted input)
+
+### Analytics & Gamification
+
+- **Weighted scoring engine:**
+
+| Contribution Type | Points |
+|---|---|
+| PR Merged | 6 |
+| Commit | 4 |
+| Issues Closed | 4 |
+| Review | 3 |
+| Task Completed | 2 |
+| PR Opened | 2 |
+| Issues Opened | 2 |
+| File Upload | 2 |
+| Comment | 1 |
+
+- **30-day contribution heatmap** — GitHub-style activity grid
+- **Velocity area chart** — 14-day daily activity trend per user
+- **Contribution type donut chart** — breakdown by category
+- **Team leaderboard** — ranked by score with month / week / all-time filters
+- **Streak tracking** — current and longest contribution streaks
+- **Workspace-wide leaderboard** — aggregated across all projects
+- **1-click CSV export** — contributions with CSV-injection protection (`=`, `+`, `-`, `@` prefix sanitization)
+- **Markdown summary export** — full project report
+- **Daily anti-abuse caps** — per-type, per-user, per-project, per-day limits (e.g. commits: 500/day)
+
+### Authentication & Security
+
+- **Google OAuth 2.0** — stateless, `httpOnly` JWT cookie (3-day expiry, `SameSite=None`, `Secure`)
+- **OAuth CSRF protection** — random state param with timing-safe verification at callback
+- **Role-based access control** — `admin` and `collaborator` roles per project; last-admin guard
+- **Origin-based CSRF guard** — applied to all unsafe methods under `/api`; allowlisted origins only
+- **Route-level rate limiting** — sliding-window per IP: auth 40/min, webhooks 600/min, GitHub sync 30/min, contribution writes 30/min
+- **Security headers** — `X-Content-Type-Options: nosniff`, `X-Frame-Options: DENY`, `Referrer-Policy`, `Permissions-Policy` (camera/mic/geolocation off), `Cross-Origin-Resource-Policy: same-origin`, HSTS in production
+- **Input validation** — URL scheme allowlisting (`http/https` only), body size limits (100 KB default, 1 MB webhooks), regex escaping in search
+- **Error handling** — internal errors never leak to clients; mapped to generic messages in production
+- **File upload hardening** — MIME allowlist, magic-byte verification, Cloudinary-required in production (fail closed)
+
+### Automation
+
+- **Daily snapshot cron** — aggregates contributions into historical records at midnight
+- **Weekly digest email** — Monday 9 AM per-user summary of the past 7 days across all projects (HTML + plain text)
+- **Due-date reminder cron** — hourly; notifies task assignees of upcoming deadlines
+- **Recurring task backfill** — daily 2 AM safety net to spawn any missed recurring task occurrences
+- **Gmail SMTP dispatcher** — formatted HTML invitation and digest emails; console simulator fallback in dev
+
+---
+
+## Architecture
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                         CLIENT (React 19)                       │
+│  Vite 8 · Tailwind 4 · Recharts · Socket.IO Client · Axios    │
+└──────────────┬──────────────────────────────┬───────────────────┘
+               │  REST (Axios)                │  WebSocket (Socket.IO)
+               ▼                              ▼
+┌──────────────────────────────────────────────────────────────────┐
+│                    API SERVER (Express 5)                        │
+│                                                                  │
+│  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌────────────────┐  │
+│  │ Auth     │  │ Projects │  │ Tasks    │  │ Contributions  │  │
+│  │ OAuth    │  │ RBAC     │  │ Sprints  │  │ Scoring Engine │  │
+│  │ JWT      │  │ Invites  │  │ Subtasks │  │ Heatmap Data   │  │
+│  └──────────┘  └──────────┘  └──────────┘  └────────────────┘  │
+│                                                                  │
+│  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌────────────────┐  │
+│  │ Chat     │  │ GitHub   │  │ Webhooks │  │ Cron Jobs      │  │
+│  │ Presence │  │ REST API │  │ HMAC-256 │  │ Snapshots      │  │
+│  │ Typing   │  │ PAT Auth │  │ Signing  │  │ Digest/Remind  │  │
+│  └──────────┘  └──────────┘  └──────────┘  └────────────────┘  │
+│                                                                  │
+│  Security: CSRF · Rate Limits · Security Headers · Input Valid   │
+└──────────────────────────┬───────────────────────────────────────┘
+                           │
+                           ▼
+              ┌─────────────────────┐
+              │     MongoDB 9       │
+              │  (Mongoose ODM)     │
+              └─────────────────────┘
 ```
 
-#### Frontend (`Frontend/.env`)
-```env
-VITE_API_URL=http://localhost:5001
-```
+---
 
-### 2. Useful Terminal Commands
+## Getting Started
 
-#### Start Backend Dev Server:
+### Prerequisites
+
+- Node.js 22+ (see `Backend/.nvmrc`)
+- pnpm 11+
+- MongoDB instance (local or Atlas)
+- Google Cloud Console project (OAuth 2.0 credentials)
+
+### Backend Setup
+
 ```bash
 cd Backend
-pnpm dev
+cp .env.example .env      # Fill in your values
+pnpm install
+pnpm dev                   # Starts on port 5001
 ```
 
-#### Clean Database (Wipes Dummy Records & Sets Up Production Project):
-```bash
-cd Backend
-pnpm run clear
-```
+### Frontend Setup
 
-#### Seed Local Database (Populates Demo Tasks, Metrics & Chat):
-```bash
-cd Backend
-pnpm run seed
-```
-
-#### Start Frontend Dev Server:
 ```bash
 cd Frontend
-pnpm dev
+cp .env.example .env       # Set VITE_API_URL
+pnpm install
+pnpm dev                   # Starts on port 5173
 ```
 
-#### Production Build Verification:
+### Database Commands
+
 ```bash
-cd Frontend
-pnpm exec vite build
+cd Backend
+pnpm run seed              # Populate demo tasks, metrics, and chat
+pnpm run clear             # Wipe dummy records and reset
+pnpm run repair:commits    # Fix stale commit user attributions
 ```
 
----
+### Environment Variables
 
-## 💼 Resume & Technical Highlights
+**Backend (`Backend/.env`)**
 
-If you are showcasing **Zeltxx** on your resume or portfolio:
+| Variable | Description |
+|---|---|
+| `PORT` | Server port (default: 5001) |
+| `MONGO_URI` | MongoDB connection string |
+| `JWT_SECRET` | Random string for JWT signing |
+| `CLIENT_URL` | Frontend origin for OAuth redirects |
+| `GOOGLE_CLIENT_ID` | From Google Cloud Console |
+| `GOOGLE_CLIENT_SECRET` | From Google Cloud Console |
+| `CORS_ORIGINS` | Comma-separated allowed browser origins |
+| `SMTP_HOST` | `smtp.gmail.com` |
+| `SMTP_PORT` | `465` (SSL) |
+| `SMTP_USER` | Gmail address |
+| `SMTP_PASS` | Google App Password |
+| `CLOUDINARY_*` | Cloud credentials for file uploads |
 
-- **Built Full-Stack SaaS Architecture**: Engineered **Zeltxx**, a real-time developer productivity SaaS platform using **React 19**, **Node.js/Express 5**, **MongoDB**, and **Socket.io**.
-- **Real-Time WebSocket Sync**: Implemented low-latency bidirectional communication for team chat rooms, task updates, and multi-user room presence tracking.
-- **Direct GitHub REST API Integration**: Built an API service fetching live GitHub commits (`sha`, author, commit message) with PAT rate-limit bypass support.
-- **Weighted Analytics Algorithm**: Designed an automated gamified scoring system calculating developer impact (`commits: 4`, `reviews: 3`, `tasks: 2`, `comments: 1`) with 14-day velocity trends rendered via **Recharts**.
-- **OAuth 2.0 & Role-Based Security**: Secured REST APIs with **Passport.js Google OAuth 2.0**, **JWT HTTP-Only cookies**, and RBAC enforcing Admin vs. Collaborator capabilities.
+**Frontend (`Frontend/.env`)**
 
----
-
-## 🛰️ Complete REST API Matrix
-
-### Auth
-- `GET /api/auth/google` - Initiate Google OAuth
-- `GET /api/auth/me` - Get current user profile
-- `PUT /api/auth/profile` - Update display name, bio, & status text
-
-### Projects & Members
-- `GET /api/projects` - Get user projects
-- `POST /api/projects` - Create project
-- `GET /api/projects/:id` - Get project details
-- `PUT /api/projects/:id` - Update project metadata (Admin)
-- `DELETE /api/projects/:id` - Delete project & cascade delete all associated data (Admin)
-- `POST /api/projects/:id/invite` - Invite member by email & send SMTP notification (Admin)
-
-### GitHub Sync & Webhooks
-- `POST /api/github/sync/:projectId` - Fetch & sync live commits directly from GitHub REST API
-- `POST /api/webhooks/github/:projectId` - Process incoming GitHub push/PR webhook events
-
-### Tasks
-- `GET /api/tasks/project/:projectId` - Get project tasks (Members only)
-- `POST /api/tasks/project/:projectId` - Create task
-- `PUT /api/tasks/:id` - Update task status/details
-- `POST /api/tasks/:id/subtasks` - Add subtask
-- `PATCH /api/tasks/:id/subtasks/:subtaskId` - Toggle subtask completion
-- `POST /api/tasks/:id/comments` - Post task comment
-- `DELETE /api/tasks/:id` - Delete task
-
-### Live Chat & Resources
-- `GET /api/chats/project/:projectId` - Get chat history
-- `POST /api/chats/project/:projectId` - Send live chat message
-- `GET /api/resources/project/:projectId` - Get project docs & links
-- `POST /api/resources/project/:projectId` - Add resource link
-- `DELETE /api/resources/:id` - Delete resource
+| Variable | Description |
+|---|---|
+| `VITE_API_URL` | Backend API base URL |
 
 ---
 
-## 📜 License
-MIT License. Built for developer productivity and seamless team collaboration.
+## API Overview
+
+| Group | Endpoints |
+|---|---|
+| **Auth** | `GET /api/auth/google`, `GET /api/auth/me`, `PATCH /api/auth/profile`, `POST /api/auth/logout` |
+| **Projects** | CRUD, invite, remove member, notes, activity, webhook secret, webhook events |
+| **Tasks** | CRUD, subtasks, comments, reactions, time tracking, attachments, sprint linking |
+| **Sprints** | CRUD, burndown chart |
+| **Contributions** | Log, list, summary, streaks, leaderboard, CSV export, reactions |
+| **GitHub** | `POST /api/github/sync/:projectId` |
+| **Webhooks** | `POST /api/webhooks/github/:projectId` |
+| **Chat** | History, send message |
+| **Resources** | CRUD, categorized links |
+| **Search** | Global search across projects, tasks, notes, resources |
+| **Notifications** | List, mark read, respond to invites |
+| **Snapshots** | Daily snapshots, date-range queries |
+
+---
+
+## Deployment
+
+- **Backend:** Render (free tier) via `render.yaml` Blueprint — auto-deploys on push to `main`
+- **Frontend:** Vercel — auto-deploys on push to `main`
+- **Reverse proxy:** Nginx configs provided in `deploy/` for API and app routing
+- **Process manager:** PM2 (single-instance fork mode for Socket.IO in-memory state)
+- **Health checks:** `/health/live` (liveness, always 200), `/health` (readiness, 503 if DB down)
+
+---
+
+## Project Highlights
+
+- Built a **production-ready full-stack SaaS platform** from scratch using React 19, Node.js/Express 5, MongoDB, and Socket.IO
+- Implemented **real-time bidirectional communication** for live chat, typing indicators, presence tracking, task board sync, and collaborative notes via Socket.IO with JWT-authenticated connections
+- Designed a **weighted gamification engine** (9 contribution types, daily anti-abuse caps, streak tracking, heatmap visualization) powering team leaderboards and personal analytics
+- Integrated **GitHub REST API** for live commit syncing with idempotent bulk writes, committer-to-user resolution, and HMAC-SHA256 webhook verification with `crypto.timingSafeEqual`
+- Secured all endpoints with **Google OAuth 2.0**, JWT httpOnly cookies, CSRF origin guards, role-based access control, route-level rate limiting, security headers, and input validation
+- Built **4 background automation jobs** (daily snapshots, weekly digest emails, due-date reminders, recurring task backfill) using node-cron and Nodemailer
+- Implemented **Cloudinary-based file uploads** with MIME allowlisting, magic-byte verification, and production-fail-closed behavior
+- Deployed across **Render + Vercel** with a Render Blueprint for zero-config deployment, Nginx reverse proxy configs, and PM2 process management
+
+---
+
+**MIT License**
