@@ -16,7 +16,7 @@ export const startDailySnapshot = () => {
 
 
             const data = await Contribution.aggregate([
-                { $match: { createdAt: { $gte: yesterday, $lt: today } } },
+                { $match: { createdAt: { $gte: yesterday, $lt: today }, user: { $ne: null } } },
                 {
                     $group: {
                         _id: { project: '$project', user: '$user' },

@@ -106,16 +106,14 @@ const MyStats = () => {
 
   const allBreakdowns = projectStats.flatMap(({ userEntry }) => userEntry?.breakdown || [])
 
+  const isMySnapshot = (s) => s?.user && String(s.user._id) === String(user?._id)
+
   const bestSingleDay = allSnapshots
-    .filter((s) => String(s.user._id) === String(user._id))
+    .filter(isMySnapshot)
     .reduce((max, s) => Math.max(max, s.totalCount || 0), 0)
 
   const myActiveDays = [
-    ...new Set(
-      allSnapshots
-        .filter((s) => String(s.user._id) === String(user._id))
-        .map((s) => new Date(s.date).toISOString().slice(0, 10))
-    )
+    ...new Set(allSnapshots.filter(isMySnapshot).map((s) => new Date(s.date).toISOString().slice(0, 10)))
   ].sort()
 
   const computeStreak = (days) => {
@@ -183,9 +181,7 @@ const MyStats = () => {
           </div>
 
           <div className="mb-6">
-            <ContribHeatmap
-              snapshots={allSnapshots.filter((s) => String(s.user._id) === String(user._id))}
-            />
+            <ContribHeatmap snapshots={allSnapshots.filter(isMySnapshot)} />
           </div>
 
           <Card className="mb-6 border-slate-800 bg-slate-900 shadow-xs">
@@ -289,7 +285,7 @@ const MyStats = () => {
                               <div className="flex items-center gap-2">
                                 <UserAvatar user={entry.user} size="xs" />
                                 <span className="font-medium text-slate-100">
-                                  {entry.user.name}
+                                  {entry.user?.name || 'Unknown'}
                                   {isMe && (
                                     <Badge className="ml-2 bg-blue-600 text-white">You</Badge>
                                   )}

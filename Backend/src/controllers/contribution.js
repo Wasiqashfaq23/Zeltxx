@@ -252,7 +252,7 @@ export const getProjectStreaks = async (req, res) => {
     if (!project) return
 
     const grouped = await Snapshot.aggregate([
-      { $match: { project: new mongoose.Types.ObjectId(projectId) } },
+      { $match: { project: new mongoose.Types.ObjectId(projectId), user: { $ne: null } } },
       { $group: { _id: '$user', dates: { $push: '$date' } } },
       { $lookup: { from: 'users', localField: '_id', foreignField: '_id', as: 'userDoc' } }
     ])
