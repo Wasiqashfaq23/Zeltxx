@@ -3,6 +3,11 @@
 
 @source "../src/**/*.{js,jsx}";
 
+/* Class-based dark mode: `dark:` utilities follow the .dark class that the
+   theme toggle (Navbar) and public/theme.js put on <html>, instead of the
+   OS prefers-color-scheme media query. */
+@custom-variant dark (&:where(.dark, .dark *));
+
 :root {
   --background: #ffffff;
   --foreground: #0f172a;

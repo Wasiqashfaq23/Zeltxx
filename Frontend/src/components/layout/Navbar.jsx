@@ -24,7 +24,15 @@ const Navbar = () => {
   const [notifications, setNotifications] = useState([])
   const [notifOpen, setNotifOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
-  const [theme, setTheme] = useState(() => localStorage.getItem('zeltxx_theme') || 'light')
+  const [theme, setTheme] = useState(() => {
+    const stored = localStorage.getItem('zeltxx_theme')
+    if (stored) return stored
+    return typeof window !== 'undefined' &&
+      window.matchMedia &&
+      window.matchMedia('(prefers-color-scheme: dark)').matches
+      ? 'dark'
+      : 'light'
+  })
 
   useEffect(() => {
     if (theme === 'dark') {
